@@ -1,0 +1,705 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM Output & Sender Name/ Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM Output & Sender Name/ Email": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If category == Interested / Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mimic sending of Slack Approve/Reject": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Mimic sending of Slack Approve/Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If category == Interested / Questions": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-27T12:14:02.929Z",
+  "id": "kSGLjdNhYupRT2hOG_UAK",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "[1] Earth Chimp - ETL Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "9fb7dff8-056f-4415-895c-f79bb75bdfd0",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JbM8uVmbYBVPoc6F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "628d2ad4-65ad-449e-9748-3f24d69698e4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -256
+      ],
+      "id": "41b8a73a-7eaa-4f2a-894b-9550ceb537c6",
+      "name": "Webhook",
+      "webhookId": "628d2ad4-65ad-449e-9748-3f24d69698e4"
+    },
+    {
+      "parameters": {
+        "content": "## Notes for Imrpovement:\n1. Error Handling & Edge Cases (The \"Resiliency\" Note)\nFailed Classification: \"Add a conditional branch after the 'Parse LLM Output' node to handle 'Error' categories. These should be routed to a separate Slack channel or tagged as 'Manual Review Needed' in the Google Sheet to ensure no lead is lost due to a parsing glitch\".\n\nDuplicate Detection: \"Implement a check against the Google Sheet using the threadId before sending a Slack message. This prevents the same influencer reply from being processed twice if the Gmail trigger polls the same message twice\".\n\n2. Advanced AI Personalization (The \"Context\" Note)\nRAG Integration: \"Future phase: Connect a Vector Database (like Pinecone) containing EarthChimp’s latest product PDFs and FAQ. This allows the LLM to answer technical 'Questions' (e.g., 'Is your protein hexane-free?') with 100% factual accuracy instead of a generic 'I’ll check with the team' response\".\n\nSentiment Analysis: \"Add a sentiment score to the 'Leads' sheet. Tracking whether an influencer sounds 'Highly Enthusiastic' vs. 'Cautiously Interested' can help the sales team prioritize high-value follow-ups\".\n\n3. Workflow Optimization (The \"Scalability\" Note)\nSub-workflow Refactoring: \"As the logic for 'Drafting' grows more complex (different languages or regions), move the LLM Chain into a separate 'Callable Workflow.' This allows multiple intake pipelines (Gmail, Instagram DMs, LinkedIn) to use the same centralized brain\".\n\nRate Limiting: \"For high-volume periods, implement a 'Wait' or 'Queue' system before the Gmail Send node to stay within Google’s API rate limits and avoid being flagged as spam\".\n\n4. Human-in-the-Loop (HITL) Enhancements\nEdit Before Sending: \"Add an 'Edit' button in the Slack Block Kit. Clicking it could open a Slack 'Modal' where the user can tweak the AI's draft before hitting 'Approve & Send'\".\n\nPerformance Tracking: \"Add a 'Response Time' column in the Google Sheet (Time Approved - Time Received). This metric helps the team monitor how quickly they are engaging with interested influencers\".\n\n5. Security & Compliance\nPII Masking: \"Before sending data to the LLM, add a node to mask sensitive information (like phone numbers or private addresses) to ensure EarthChimp stays compliant with data privacy standards\".",
+        "height": 752,
+        "width": 800,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        -480
+      ],
+      "id": "42c62569-ea22-4530-83e1-6b5ea345625f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender: {{ $json.From }}\nEmail Body: > \"\"\"\n{{ $json.snippet }}\n\"\"\"\n\nAnalyze the email above and provide the JSON output.",
+        "needsFallback": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "You are the Lead Outreach Manager for EarthChimp. Analyze influencer replies with extreme precision.  \n\nClassification Rules: \n- Interested: ONLY if they explicitly say \"yes,\" \"I'm interested,\" \"let's collab,\" or ask \"how do I join?\"  \n- Questions: Specific inquiries about pay, ingredients, shipping, or technical details. \n- Not interested: Direct or polite declines (e.g., \"Not at this time\"). \n- Auto-reply: System notifications or OOO messages. \n- Unclear: Vague replies, single words without context, or ONLY emojis (e.g., \"👀\", \"🔥\", \"Thanks\").  \n\nCRITICAL RULES: \n- If the email contains ONLY emojis or a single vague word like \"Cool\" or \"Nice,\" you MUST classify it as 'Unclear'. Do NOT assume interest from emojis.  \n- The draft_reply must be a single-line string. Replace all actual newlines with the literal characters \\n. Do not output raw line breaks inside the JSON object.\n\nDrafting Rules: \n- If 'Interested' or 'Questions': Draft a professional reply in the first person (\"we\"). \n- If 'Not interested', 'Auto-reply', or 'Unclear': Set draft_reply to null.  \n\nOutput Format (Strict JSON): {   \"category\": \"String\",   \"reasoning\": \"1-sentence explanation\",   \"draft_reply\": \"String or null\" }\n\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        944,
+        -160
+      ],
+      "id": "fce904c6-2285-4555-a616-d3711f723be0",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "maxTries": 5
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        848,
+        80
+      ],
+      "id": "9e0694b1-0485-435d-97f2-bf3518d2e68b",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "g0Uby2vRiyVUwoAp",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the string from the webhook body\nconst rawBody = $input.first().json.body;\n\n// 2. Parse the string into a real Javascript Array\nconst emails = JSON.parse(rawBody);\n\n// 3. Map the array into the format n8n expects (an array of objects with a 'json' key)\nreturn emails.map(email => {\n  return {\n    json: email\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "79ad20fa-6747-4248-aee3-aba4c09f9f84",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        -256
+      ],
+      "id": "659f8304-4778-4d6e-9a28-a5d8d5e8c601",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "## Feat idea:\n- add a knowledge base as reference for the AI to have more context on what and how to reply as Earth Chimp",
+        "height": 256,
+        "width": 256,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -304
+      ],
+      "id": "df336a69-4f1f-4d17-bb30-755857a94c97",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1I9lbBaJUOK8_7_gmNMP1TLRKI7tYi79X79Tu2S3umVA",
+          "mode": "list",
+          "cachedResultName": "Earth Chimp Online Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I9lbBaJUOK8_7_gmNMP1TLRKI7tYi79X79Tu2S3umVA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I9lbBaJUOK8_7_gmNMP1TLRKI7tYi79X79Tu2S3umVA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sender ": "={{ $json.sender_name }}",
+            "Sender Email": "={{ $json.sender_email }}",
+            "Original Message": "={{ $('Loop Over Items').item.json.snippet }}",
+            "Classification": "={{ $json.category }}",
+            "AI Drafted Response": "={{ $json.draft_reply }}",
+            "Time processed": "={{ $json.processed_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Sender ",
+              "displayName": "Sender ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sender Email",
+              "displayName": "Sender Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Original Message",
+              "displayName": "Original Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Classification",
+              "displayName": "Classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Drafted Response",
+              "displayName": "AI Drafted Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time processed",
+              "displayName": "Time processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        -160
+      ],
+      "id": "564080ce-667c-4809-b898-ef4bba8c71c2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Feat idea:\n- for future implementations, add an 'is_approved' column in sheets to track if any HITL messages/requests were overlooked in Discord. Update the column accordingly (Pending -> Sent / Rejected)",
+        "height": 352,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -400
+      ],
+      "id": "ddc4604e-7690-4c75-9ab2-dc8bd5e8297d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Ensure \"Mode\" is set to \"Run Once for Each Item\" in the node parameters\nconst item = $input.item;\nconst rawFrom = $('Loop Over Items').item.json.From || \"\"; \nlet llmText = item.json.text || \"\";\nlet llmResponse = {};\n\n// 1. Clean the LLM string (removes markdown backticks if present)\nllmText = llmText.replace(/```json|```/gi, \"\").trim();\n\n// 2. Resilient JSON Parsing\ntry {\n  llmResponse = JSON.parse(llmText);\n} catch (e) {\n  // Fallback: If parsing fails, try to extract JSON-like content using regex\n  const jsonMatch = llmText.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    try {\n      llmResponse = JSON.parse(jsonMatch[0]);\n    } catch (innerError) {\n      llmResponse = { category: \"Error\", reasoning: \"Regex extraction failed\", draft_reply: null };\n    }\n  } else {\n    llmResponse = { category: \"Error\", reasoning: \"No JSON found in LLM output\", draft_reply: null };\n  }\n}\n\n// 3. Extract Name/Email & Set Timestamp\nconst nameMatch = rawFrom.match(/^([^<]+)/);\nconst cleanName = nameMatch ? nameMatch[1].trim() : \"Influencer\";\nconst emailMatch = rawFrom.match(/<([^>]+)>/);\nconst cleanEmail = emailMatch ? emailMatch[1] : rawFrom;\nconst processedAt = new Date().toLocaleString();\n\nreturn {\n  json: {\n    ...item.json,\n    ...llmResponse, \n    sender_name: cleanName,\n    sender_email: cleanEmail,\n    processed_at: processedAt\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        -160
+      ],
+      "id": "00c4ad08-04ef-47cf-bcf8-fc34796dded1",
+      "name": "Parse LLM Output & Sender Name/ Email"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -384
+      ],
+      "id": "74be1dda-ca9c-43bb-a1ed-87e373d073a7",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "C0APPD030SV"
+        },
+        "messageType": "block",
+        "blocksUi": "={\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"header\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\"text\": \"🚨 New Influencer Reply: {{ $json.Classification }}\",\n\t\t\t\t\"emoji\": true\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"*From:* {{ $json['Sender '] }} ({{ $json['Sender Email'] }})\\n*Message:* _{{ $json['Original Message'] }}_\"\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"*AI Drafted Response:* \\n```{{ $json['AI Drafted Response'].replace(/\\n/g, \"\\\\n\") }}```\"\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"divider\"\n\t\t},\n\t\t{\n\t\t\t\"type\": \"actions\",\n\t\t\t\"elements\": [\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"button\",\n\t\t\t\t\t\"text\": {\n\t\t\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\t\t\"text\": \"Approve & Send\",\n\t\t\t\t\t\t\"emoji\": true\n\t\t\t\t\t},\n\t\t\t\t\t\"style\": \"primary\",\n\t\t\t\t\t\"value\": \"{{ $json['Sender Email'] }}|{{ $json['AI Drafted Response'].replace(/\\n/g, ' ') }}|{{ $('Code in JavaScript').item.json.threadId }}\",\n\t\t\t\t\t\"action_id\": \"approve_reply\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"button\",\n\t\t\t\t\t\"text\": {\n\t\t\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\t\t\"text\": \"Reject\",\n\t\t\t\t\t\t\"emoji\": true\n\t\t\t\t\t},\n\t\t\t\t\t\"style\": \"danger\",\n\t\t\t\t\t\"value\": \"rejected\",\n\t\t\t\t\t\"action_id\": \"reject_reply\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t]\n}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1952,
+        -160
+      ],
+      "id": "d367362e-1e5a-46d6-a916-5425f8293b70",
+      "name": "Send a message",
+      "webhookId": "1b5c5a08-da21-4497-956e-00459f4e3a19",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "slackApi": {
+          "id": "8LEbRVzgYz9Zc508",
+          "name": "Earth Chimp Lead Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Production feat: \n- add the thread ID when pasing the data to the 2nd part of the workflow to allow email threading rather than sending a separate email from an email reply/inquiry\n- for demo purposes via postman, threading will be set aside for now\n- also add a link to the email just in case the HITL is not satisfied with the reply and can reply themselves / add a new button that will allow the HITL to edit the AI generated text prior to sending",
+        "height": 352,
+        "width": 624,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -400
+      ],
+      "id": "80c9c7a1-8355-4b1d-9461-11faad1529d8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/7308cedc-f7e7-4c76-86b7-bb4a5cc56fce",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"manual_trigger\": true,\n  \"payload\": {\n    \"actions\": [\n      {\n        \"value\": \"{{ $('Append row in sheet').item.json['Sender Email'] }}|{{ $('Append row in sheet').item.json['AI Drafted Response'].replace(/\\n/g, ' ') }}|{{ $('Code in JavaScript').item.json.threadId }}\",\n        \"action_id\": \"approve_reply\"\n      }\n    ],\n    \"container\": {\n      \"message_ts\": \"{{ $json['message'].ts }}\"\n    },\n    \"channel\": {\n      \"id\": \"{{ $json.channel }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2416,
+        -160
+      ],
+      "id": "a260ff18-be9d-4dfe-b33f-64e2430ee278",
+      "name": "Mimic sending of Slack Approve/Reject"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2192,
+        -160
+      ],
+      "id": "3a2d489b-57ea-4a6b-9feb-afc1f642c389",
+      "name": "Wait",
+      "webhookId": "cb6df668-437f-474c-819f-72b0133de2fa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb1232a9-7336-4237-b04a-5a4c5c51e5a2",
+              "leftValue": "={{ $('Parse LLM Output & Sender Name/ Email').item.json.category }}",
+              "rightValue": "Interested",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "6967fbe6-3aa0-4492-80c3-aacb6b6cffef",
+              "leftValue": "={{ $('Parse LLM Output & Sender Name/ Email').item.json.category }}",
+              "rightValue": "Questions",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1728,
+        -160
+      ],
+      "id": "697ae87a-a36f-47a3-b512-a8f544542246",
+      "name": "If category == Interested / Questions"
+    },
+    {
+      "parameters": {
+        "model": "openrouter/free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        128
+      ],
+      "id": "d36ed8e1-7b47-41a9-b238-ebf4f140733e",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "g0Uby2vRiyVUwoAp",
+          "name": "OpenRouter API Key"
+        }
+      }
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "19d2f40b40a2658f",
+          "threadId": "19d2f3f5ef9339e7",
+          "snippet": "here is my reply On Fri, Mar 27, 2026 at 8:23 PM Andrea Baulita &lt;andybaulita@gmail.com&gt; wrote: hi this is a test pls reply",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 7901,
+          "historyId": "3425459",
+          "internalDate": "1774614251000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "IMPORTANT",
+              "name": "IMPORTANT"
+            },
+            {
+              "id": "CATEGORY_PERSONAL",
+              "name": "CATEGORY_PERSONAL"
+            },
+            {
+              "id": "UNREAD",
+              "name": "UNREAD"
+            }
+          ],
+          "From": "supreme hobbyist <supremobs12@gmail.com>",
+          "Subject": "Re: Test subject #2",
+          "To": "Andrea Baulita <andybaulita@gmail.com>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "content-type": "text/plain",
+            "user-agent": "PostmanRuntime/7.52.0",
+            "accept": "*/*",
+            "postman-token": "2db770f7-fbb7-4d2c-9e35-ac41ce764148",
+            "host": "localhost:5678",
+            "accept-encoding": "gzip, deflate, br",
+            "connection": "keep-alive",
+            "content-length": "10467"
+          },
+          "params": {},
+          "query": {},
+          "body": "[\n  {\n    \"id\": \"msg_001\",\n    \"threadId\": \"thread_001\",\n    \"snippet\": \"Hi! I love this — I've been looking for a vegan protein to recommend to my audience. Would love to chat about a collab. What are the next steps?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1500,\n    \"historyId\": \"100001\",\n    \"internalDate\": \"1774614251000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }, { \"id\": \"UNREAD\", \"name\": \"UNREAD\" }],\n    \"From\": \"Sarah (FitFuel) <sarah@fitfuel.com>\",\n    \"Subject\": \"Re: EarthChimp Partnership\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_002\",\n    \"threadId\": \"thread_002\",\n    \"snippet\": \"Oh wow, I literally JUST posted a smoothie reel yesterday using a pea protein blend and my DMs blew up... Your timing is insane lol.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 2200,\n    \"historyId\": \"100002\",\n    \"internalDate\": \"1774614252000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Jake (JakeLifts) <jake@lifts.io>\",\n    \"Subject\": \"Re: Collaboration Idea\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_003\",\n    \"threadId\": \"thread_003\",\n    \"snippet\": \"Thanks for reaching out. I only work with brands that are genuinely cruelty-free and third-party tested. Can you send me your certifications?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1800,\n    \"historyId\": \"100003\",\n    \"internalDate\": \"1774614253000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Emma (Clean Beauty Emma) <emma@cleanbeauty.com>\",\n    \"Subject\": \"Question about EarthChimp\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_004\",\n    \"threadId\": \"thread_004\",\n    \"snippet\": \"Hey, thanks for the email. What's the compensation structure? I usually charge $500 per reel and $300 per story set.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1200,\n    \"historyId\": \"100004\",\n    \"internalDate\": \"1774614254000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Mike (Mike Fitness) <mike@mikefit.com>\",\n    \"Subject\": \"Rates & Deliverables\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_005\",\n    \"threadId\": \"thread_005\",\n    \"snippet\": \"Interesting. What flavours do you have? My audience is super picky about taste. Can you send samples first?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1100,\n    \"historyId\": \"100005\",\n    \"internalDate\": \"1774614255000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Tasha (Tasha Wellness) <tasha@wellness.com>\",\n    \"Subject\": \"Re: Sample Request\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_006\",\n    \"threadId\": \"thread_006\",\n    \"snippet\": \"Hi there, thanks so much for thinking of me! I'm actually fully booked with brand partnerships through Q3 so I can't take on anything new.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1600,\n    \"historyId\": \"100006\",\n    \"internalDate\": \"1774614256000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Rachel (Rachel Running) <rachel@run.com>\",\n    \"Subject\": \"Re: EarthChimp x Rachel Running\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_007\",\n    \"threadId\": \"thread_007\",\n    \"snippet\": \"Not interested, thanks.\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 400,\n    \"historyId\": \"100007\",\n    \"internalDate\": \"1774614257000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Dan (Dan Body Coach) <dan@bodycoach.com>\",\n    \"Subject\": \"Re: Vegan Protein\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_008\",\n    \"threadId\": \"thread_008\",\n    \"snippet\": \"Thank you for your email. I am currently out of the office with limited access to email and will return on April 7th.\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 800,\n    \"historyId\": \"100008\",\n    \"internalDate\": \"1774614258000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Auto-responder <bot@management.com>\",\n    \"Subject\": \"Out of Office: EarthChimp Partnership\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_009\",\n    \"threadId\": \"thread_009\",\n    \"snippet\": \"This is an automatically generated Delivery Status Notification. Delivery to the following recipients was successful.\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 500,\n    \"historyId\": \"100009\",\n    \"internalDate\": \"1774614259000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Mailer Daemon <mailer-daemon@google.com>\",\n    \"Subject\": \"Successful Delivery Report\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_010\",\n    \"threadId\": \"thread_010\",\n    \"snippet\": \"Sure\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 300,\n    \"historyId\": \"100010\",\n    \"internalDate\": \"1774614260000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Alex (Plant Based Alex) <alex@pb.com>\",\n    \"Subject\": \"Re: Quick question\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_011\",\n    \"threadId\": \"thread_011\",\n    \"snippet\": \"Pass\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 200,\n    \"historyId\": \"100011\",\n    \"internalDate\": \"1774614261000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Unknown <nofit@noquit.com>\",\n    \"Subject\": \"Re: Partnership\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_012\",\n    \"threadId\": \"thread_012\",\n    \"snippet\": \"Ah yes, another brand sliding into my inbox wanting me to sell protein powder to my followers for 'exposure.' Tell you what — send me a year's supply.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1400,\n    \"historyId\": \"100012\",\n    \"internalDate\": \"1774614262000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Cardio Queen <queen@cardio.com>\",\n    \"Subject\": \"Re: Marketing request\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_013\",\n    \"threadId\": \"thread_013\",\n    \"snippet\": \"Hola! Me encanta la marca, se ve increible. Hacen envios a Mexico? Me gustaria probar el producto antes de promocionarlo.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1300,\n    \"historyId\": \"100013\",\n    \"internalDate\": \"1774614263000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Maria (Maria Nutricion) <maria@nutricion.mx>\",\n    \"Subject\": \"Envíos a México\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_014\",\n    \"threadId\": \"thread_014\",\n    \"snippet\": \"Hey, I think you have the wrong person? I'm a fitness coach, not an influencer. I don't really post content. But do you do wholesale?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1500,\n    \"historyId\": \"100014\",\n    \"internalDate\": \"1774614264000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Pete (Coach Pete) <pete@coach.com>\",\n    \"Subject\": \"Wrong person / Wholesale question\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_015\",\n    \"threadId\": \"thread_015\",\n    \"snippet\": \"Hi, thanks for reaching out to Jess. I'm her talent manager. All brand partnership enquiries go through me. Can you send over the campaign brief?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1900,\n    \"historyId\": \"100015\",\n    \"internalDate\": \"1774614265000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Talent Manager <manager@jessfit.com>\",\n    \"Subject\": \"Jess Fit Partnership Inquiry\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_016\",\n    \"threadId\": \"thread_016\",\n    \"snippet\": \"Hey! I'd love some free samples to try. I can't promise I'll post about it but if I like it I probably will.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1100,\n    \"historyId\": \"100016\",\n    \"internalDate\": \"1774614266000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Small Fit Fam <contact@smallfit.com>\",\n    \"Subject\": \"Samples?\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_017\",\n    \"threadId\": \"thread_017\",\n    \"snippet\": \"I appreciate you reaching out but I'm really trying to be selective. I looked at the website and it's just not the right fit for my brand.\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1200,\n    \"historyId\": \"100017\",\n    \"internalDate\": \"1774614267000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Lia (Lean With Lia) <lia@lean.com>\",\n    \"Subject\": \"Re: EarthChimp collab\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_018\",\n    \"threadId\": \"thread_018\",\n    \"snippet\": \"This looks cool! Two things — is this available on Amazon? And do you have an affiliate program?\",\n    \"payload\": { \"mimeType\": \"multipart/alternative\" },\n    \"sizeEstimate\": 1400,\n    \"historyId\": \"100018\",\n    \"internalDate\": \"1774614268000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Matt (Strong Vegan Matt) <matt@strongvegan.com>\",\n    \"Subject\": \"Amazon & Affiliate Program\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_019\",\n    \"threadId\": \"thread_019\",\n    \"snippet\": \"CONGRATULATIONS! You have been selected for our exclusive business growth mastermind. Click here to claim your spot.\",\n    \"payload\": { \"mimeType\": \"text/html\" },\n    \"sizeEstimate\": 3500,\n    \"historyId\": \"100019\",\n    \"internalDate\": \"1774614269000\",\n    \"labels\": [{ \"id\": \"SPAM\", \"name\": \"SPAM\" }],\n    \"From\": \"Unknown <spam@success2024.com>\",\n    \"Subject\": \"URGENT: Your Spot is Waiting\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  },\n  {\n    \"id\": \"msg_020\",\n    \"threadId\": \"thread_020\",\n    \"snippet\": \"👀👀\",\n    \"payload\": { \"mimeType\": \"text/plain\" },\n    \"sizeEstimate\": 250,\n    \"historyId\": \"100020\",\n    \"internalDate\": \"1774614270000\",\n    \"labels\": [{ \"id\": \"INBOX\", \"name\": \"INBOX\" }],\n    \"From\": \"Unknown <vibes@only.com>\",\n    \"Subject\": \"Re: EarthChimp check-in\",\n    \"To\": \"Andrea Baulita <andybaulita@gmail.com>\"\n  }\n]",
+          "webhookUrl": "https://my-earth-chimp-demo.hooks.n8n.cloud/webhook/628d2ad4-65ad-449e-9748-3f24d69698e4",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T10:09:43.070Z",
+      "createdAt": "2026-03-30T10:09:43.070Z",
+      "role": "workflow:owner",
+      "workflowId": "kSGLjdNhYupRT2hOG_UAK",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": {
+    "node:Gmail Trigger": {
+      "Gmail Trigger": {
+        "lastTimeChecked": 1774864491,
+        "possibleDuplicates": [
+          "19d3e2ae7c04167a",
+          "19d3e2642de35c83",
+          "19d3e254d75b903f",
+          "19d3e215336b5bee",
+          "19d3e20ae1ef8bfa",
+          "19d3e1d6d1f30002",
+          "19d3e14830aff97f",
+          "19d3df8f9f379eed",
+          "19d3df48f0417493",
+          "19d3de33e0946fc5"
+        ]
+      }
+    }
+  },
+  "tags": [],
+  "triggerCount": 2,
+  "updatedAt": "2026-03-28T09:58:41.340Z",
+  "versionId": "cb75d0ce-36d3-4d53-b26e-b81f97b5fa02"
+}
