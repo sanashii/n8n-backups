@@ -1,0 +1,36 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {},
+  "createdAt": "2026-03-30T10:17:52.483Z",
+  "id": "xfxvUeiaisFo3YhK",
+  "isArchived": false,
+  "meta": null,
+  "name": "Github Backup Automation",
+  "nodes": [],
+  "origin": "n8n",
+  "pinData": {},
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T10:17:52.486Z",
+      "createdAt": "2026-03-30T10:17:52.486Z",
+      "role": "workflow:owner",
+      "workflowId": "xfxvUeiaisFo3YhK",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-30T10:17:52.483Z",
+  "versionId": "779d5643-1dd0-4106-a540-58e6d1592ae2"
+}
