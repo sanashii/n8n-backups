@@ -1,0 +1,679 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Variables": {
+      "main": [
+        [
+          {
+            "node": "YouTube Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Search": {
+      "main": [
+        [
+          {
+            "node": "Parse Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Videos": {
+      "main": [
+        [
+          {
+            "node": "Get Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transcript": {
+      "main": [
+        [
+          {
+            "node": "Get Video Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video Stats": {
+      "main": [
+        [
+          {
+            "node": "Merge Video Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Video Data": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Videos": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate TikTok Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate TikTok Script": {
+      "main": [
+        [
+          {
+            "node": "Parse Script Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Script Response": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Append": {
+      "main": [
+        [
+          {
+            "node": "Respond to Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-29T08:34:51.358Z",
+  "id": "e8kQhMkJVuFVEc6XY2dWC",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Action Figure TikTok Script Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "TikTok Script Generator",
+        "formDescription": "Search for an action figure to generate a viral TikTok script from competitor YouTube videos",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Action Figure Name",
+              "placeholder": "e.g. Spider-Man Marvel Legends 6-inch",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Max Videos to Analyze",
+              "fieldType": "number",
+              "placeholder": "5"
+            }
+          ]
+        },
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "41b9e9b5-486c-49e3-9613-6fc3aa097b38",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        -208
+      ],
+      "webhookId": "22788aa3-f5c5-4b0b-9e39-e39292e8169a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sv1",
+              "name": "action_figure_name",
+              "value": "={{ $json['Action Figure Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "sv2",
+              "name": "search_query",
+              "value": "={{ $json['Action Figure Name'] }} action figure review unboxing",
+              "type": "string"
+            },
+            {
+              "id": "sv3",
+              "name": "max_results",
+              "value": "={{ $json['Max Videos to Analyze'] || 5 }}",
+              "type": "number"
+            },
+            {
+              "id": "sv4",
+              "name": "run_date",
+              "value": "={{ $now.format('yyyy-MM-dd HH:mm') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "50058d06-93fa-4eef-a95b-ace7b2114431",
+      "name": "Set Variables",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -336,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.search_query }}"
+            },
+            {
+              "name": "type",
+              "value": "video"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{ $json.max_results }}"
+            },
+            {
+              "name": "order",
+              "value": "viewCount"
+            },
+            {
+              "name": "relevanceLanguage",
+              "value": "en"
+            },
+            {
+              "name": "key",
+              "value": "={{ $vars.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff4e701a-158e-4556-b1cb-bc3f355e57e7",
+      "name": "YouTube Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst actionFigureName = $('Set Variables').first().json.action_figure_name;\nconst items = data.items || [];\n\nif (items.length === 0) {\n  throw new Error('No YouTube videos found for: ' + actionFigureName);\n}\n\nreturn items\n  .filter(item => item.id && item.id.videoId)\n  .map(item => ({\n    json: {\n      video_id: item.id.videoId,\n      title: item.snippet.title,\n      channel: item.snippet.channelTitle,\n      channel_id: item.snippet.channelId,\n      description: (item.snippet.description || '').substring(0, 300),\n      published_at: item.snippet.publishedAt,\n      video_url: `https://www.youtube.com/watch?v=${item.id.videoId}`,\n      action_figure_name: actionFigureName\n    }\n  }));"
+      },
+      "id": "82e57a50-9ad6-4e7f-abee-2bfd0988fcbc",
+      "name": "Parse Videos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.supadata.ai/v1/youtube/transcript",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json.video_url }}"
+            },
+            {
+              "name": "text",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $vars.SUPADATA_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "6fc7feda-cf44-47ba-9657-ca07fbbdb95a",
+      "name": "Get Transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "statistics"
+            },
+            {
+              "name": "id",
+              "value": "={{ $('Parse Videos').item.json.video_id }}"
+            },
+            {
+              "name": "key",
+              "value": "={{ $vars.YOUTUBE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "912fa5c7-b0ca-41c5-a49c-5b28a048f811",
+      "name": "Get Video Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "mv1",
+              "name": "video_id",
+              "value": "={{ $('Parse Videos').item.json.video_id }}",
+              "type": "string"
+            },
+            {
+              "id": "mv2",
+              "name": "title",
+              "value": "={{ $('Parse Videos').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "mv3",
+              "name": "channel",
+              "value": "={{ $('Parse Videos').item.json.channel }}",
+              "type": "string"
+            },
+            {
+              "id": "mv4",
+              "name": "video_url",
+              "value": "={{ $('Parse Videos').item.json.video_url }}",
+              "type": "string"
+            },
+            {
+              "id": "mv5",
+              "name": "action_figure_name",
+              "value": "={{ $('Parse Videos').item.json.action_figure_name }}",
+              "type": "string"
+            },
+            {
+              "id": "mv6",
+              "name": "transcript",
+              "value": "={{ $('Get Transcript').item.json.content || $('Get Transcript').item.json.text || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "mv7",
+              "name": "view_count",
+              "value": "={{ ($('Get Video Stats').item.json.items || [{}])[0]?.statistics?.viewCount || 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "mv8",
+              "name": "like_count",
+              "value": "={{ ($('Get Video Stats').item.json.items || [{}])[0]?.statistics?.likeCount || 0 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5909b57f-1150-4151-bc3c-455bccdac7d0",
+      "name": "Merge Video Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "videos",
+        "options": {}
+      },
+      "id": "a4142d26-79eb-4b18-9ccd-178f300dee36",
+      "name": "Aggregate All Videos",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const allVideos = $input.first().json.videos || [];\nconst actionFigure = allVideos[0]?.action_figure_name || 'the action figure';\nconst runDate = $('Set Variables').first().json.run_date;\n\nlet competitorSection = '';\nconst videoUrls = [];\n\nallVideos.forEach((v, i) => {\n  videoUrls.push(v.video_url);\n  const transcriptSnippet = (v.transcript || '').substring(0, 1800);\n  const viewsFormatted = parseInt(v.view_count || 0).toLocaleString();\n\n  competitorSection += `\\n### COMPETITOR ${i + 1}: \"${v.title}\"\\n`;\n  competitorSection += `Channel: ${v.channel} | Views: ${viewsFormatted} | Likes: ${parseInt(v.like_count || 0).toLocaleString()}\\n`;\n  competitorSection += `URL: ${v.video_url}\\n`;\n  competitorSection += `Transcript Excerpt:\\n${transcriptSnippet || '[No transcript available — use title/description as context]'}\\n`;\n  competitorSection += `---\\n`;\n});\n\nconst prompt = `You are an expert viral TikTok content creator specializing in action figures and collectibles. Your videos consistently hit 500k+ views.\\n\\nI want to create a viral TikTok video about the **${actionFigure}**.\\n\\nHere are transcripts from TOP COMPETITOR videos on YouTube for this product:\\n${competitorSection}\\nAnalyze what works in these competitor videos and create a SUPERIOR TikTok script that:\\n- Opens with a scroll-stopping HOOK in the first 2-3 seconds\\n- Uses high-energy, conversational TikTok language (not stiff or formal)\\n- Highlights the most exciting features (articulation, accessories, sculpt quality, value)\\n- Creates FOMO with authentic hype language\\n- Ends with a CTA that drives saves, follows, and comments\\n- Is 45-60 seconds at TikTok pace (roughly 90-130 words)\\n\\nRespond in EXACTLY this format:\\n\\nHOOK: [Your 2-3 second scroll-stopper]\\n\\nFULL SCRIPT:\\n[Complete script — no stage directions, just the words to say]\\n\\nCTA: [Your closing call to action]\\n\\nWHY THIS BEATS COMPETITORS:\\n- [Specific advantage 1]\\n- [Specific advantage 2]\\n- [Specific advantage 3]`;\n\nreturn [{\n  json: {\n    prompt,\n    action_figure_name: actionFigure,\n    videos_analyzed: allVideos.length,\n    video_urls: videoUrls.join('\\n'),\n    run_date: runDate\n  }\n}];"
+      },
+      "id": "01ade746-52d1-42f9-a3ad-bc6758da26b9",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $vars.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'user', content: $json.prompt }], temperature: 0.8, max_tokens: 1200 }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "f46fbc86-4676-42a0-b375-53b34d663f75",
+      "name": "Generate TikTok Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices?.[0]?.message?.content || '';\nconst prev = $('Build AI Prompt').first().json;\n\nconst hookMatch = content.match(/HOOK:\\s*([\\s\\S]+?)(?=\\n\\nFULL SCRIPT:|$)/);\nconst scriptMatch = content.match(/FULL SCRIPT:\\s*([\\s\\S]+?)(?=\\n\\nCTA:|$)/);\nconst ctaMatch = content.match(/CTA:\\s*([\\s\\S]+?)(?=\\n\\nWHY THIS|$)/);\nconst whyMatch = content.match(/WHY THIS BEATS COMPETITORS:\\s*([\\s\\S]+?)$/);\n\nconst hook = hookMatch ? hookMatch[1].trim() : '';\nconst script = scriptMatch ? scriptMatch[1].trim() : content;\nconst cta = ctaMatch ? ctaMatch[1].trim() : '';\nconst why = whyMatch ? whyMatch[1].trim() : '';\n\nreturn [{\n  json: {\n    run_date: prev.run_date,\n    action_figure: prev.action_figure_name,\n    hook,\n    full_script: script,\n    cta,\n    why_better_than_competitors: why,\n    videos_analyzed: prev.videos_analyzed,\n    source_video_urls: prev.video_urls,\n    full_ai_response: content\n  }\n}];"
+      },
+      "id": "91477527-cb11-4eda-93f1-87e02c5c8381",
+      "name": "Parse Script Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TikTok Scripts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.run_date }}",
+            "Action Figure": "={{ $json.action_figure }}",
+            "Hook": "={{ $json.hook }}",
+            "Full Script": "={{ $json.full_script }}",
+            "CTA": "={{ $json.cta }}",
+            "Why Better": "={{ $json.why_better_than_competitors }}",
+            "Videos Analyzed": "={{ $json.videos_analyzed }}",
+            "Source URLs": "={{ $json.source_video_urls }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Action Figure",
+              "displayName": "Action Figure",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Hook",
+              "displayName": "Hook",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Full Script",
+              "displayName": "Full Script",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CTA",
+              "displayName": "CTA",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Why Better",
+              "displayName": "Why Better",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Videos Analyzed",
+              "displayName": "Videos Analyzed",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source URLs",
+              "displayName": "Source URLs",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f100a67f-6664-42ad-bb2a-34839522b9fa",
+      "name": "Google Sheets Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1872,
+        -208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ `Script Generated for: ${$('Parse Script Response').item.json.action_figure}\\n\\nHOOK:\\n${$('Parse Script Response').item.json.hook}\\n\\nFULL SCRIPT:\\n${$('Parse Script Response').item.json.full_script}\\n\\nCTA:\\n${$('Parse Script Response').item.json.cta}\\n\\nWHY IT BEATS COMPETITORS:\\n${$('Parse Script Response').item.json.why_better_than_competitors}\\n\\nAnalyzed ${$('Parse Script Response').item.json.videos_analyzed} competitor videos. Saved to Google Sheets.` }}",
+        "options": {}
+      },
+      "id": "248f9e5b-3786-4c3e-9a9a-70f4feeb689b",
+      "name": "Respond to Form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        -208
+      ]
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {},
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T10:09:43.076Z",
+      "createdAt": "2026-03-30T10:09:43.076Z",
+      "role": "workflow:owner",
+      "workflowId": "e8kQhMkJVuFVEc6XY2dWC",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-03-29T08:34:49.818Z",
+      "createdAt": "2026-03-29T08:34:49.818Z",
+      "id": "BN1glDAiSihHgz78",
+      "name": "YouTube"
+    },
+    {
+      "updatedAt": "2026-03-29T08:34:49.821Z",
+      "createdAt": "2026-03-29T08:34:49.821Z",
+      "id": "pJWl43Y21dXpFwxY",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2026-03-29T08:34:49.819Z",
+      "createdAt": "2026-03-29T08:34:49.819Z",
+      "id": "r5NdrqJWr6ZbXKNH",
+      "name": "TikTok"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-29T08:37:16.087Z",
+  "versionId": "16e5730d-ce9c-40a9-8750-62ad1a8d7624"
+}
