@@ -1,0 +1,520 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many videos": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Youtube Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Youtube Transcript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get many videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-02-09T12:43:44.643Z",
+  "id": "fWKtPSDxYGBluS1758Kfw",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Youtube Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "b1b4170f-c758-4adb-8fea-5203430f7a56",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "limit": 8,
+        "filters": {
+          "q": "={{ $json.figure }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        48,
+        0
+      ],
+      "id": "b74aa9eb-94f2-4d30-ae04-c66f05f4554d",
+      "name": "Get many videos",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "NDtJZYpGnDldJniZ",
+          "name": "NEW Personal YT API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        240,
+        0
+      ],
+      "id": "5bf5c7eb-06f7-4ba6-bc42-84b42897d91a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "youtubeURL": "={{ $json.id.videoId }}"
+      },
+      "type": "n8n-nodes-youtube-transcript-api.youtubeTranscriptApi",
+      "typeVersion": 1,
+      "position": [
+        656,
+        96
+      ],
+      "id": "c1b5badb-ee48-47e6-845e-5a79c27c91d7",
+      "name": "Youtube Transcript",
+      "retryOnFail": false,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "notes": "Error occured"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Extract the raw text from the input\nlet rawText = $input.first().json.text;\n\n// 2. Clean up: Remove Markdown code blocks if the LLM included them\nrawText = rawText.replace(/```json|```/g, \"\").trim();\n\ntry {\n  const parsed = JSON.parse(rawText);\n\n  // 3. Map the data to individual Key-Value pairs for your columns\n  return {\n    // Info for the Sheet\n    Short_Title: parsed.ViralShortScript?.title || \"No Title\",\n    Short_Script: parsed.ViralShortScript?.script || \"No Script\",\n    \n    // Critique Points (Now processing simple strings from the new format)\n    Gap_1_Detail: parsed.Critique?.[0] || \"N/A\",\n    Gap_2_Detail: parsed.Critique?.[1] || \"N/A\",\n    Gap_3_Detail: parsed.Critique?.[2] || \"N/A\",\n    \n    // Long Form Outline\n    Long_Title: parsed.DefinitiveLongScriptOutline?.title || \"No Long Title\",\n    Outline_Full: parsed.DefinitiveLongScriptOutline?.outline \n      ? parsed.DefinitiveLongScriptOutline.outline.map(o => `${o.section}: ${o.content}`).join('\\n\\n') \n      : \"No Outline Available\",\n    \n    // Final CTA (The new format uses a simple string instead of an object)\n    CTA_Message: typeof parsed.CallToAction === 'string' \n      ? parsed.CallToAction \n      : (parsed.CallToAction?.message || \"No CTA\")\n  };\n} catch (e) {\n  return { \n    error: \"Failed to parse JSON\", \n    message: e.message,\n    raw_text_received: rawText.substring(0, 100) + \"...\" \n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        -80
+      ],
+      "id": "eaaac71b-f137-44c0-8463-73b7c6b7e8e3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1UiItuJ6nWNtua2-PQkqJ6LQoQx8Cm9LJyh3JducPU5o",
+          "mode": "list",
+          "cachedResultName": "Youtube Script",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UiItuJ6nWNtua2-PQkqJ6LQoQx8Cm9LJyh3JducPU5o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2048345234,
+          "mode": "list",
+          "cachedResultName": "Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UiItuJ6nWNtua2-PQkqJ6LQoQx8Cm9LJyh3JducPU5o/edit#gid=2048345234"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Short Title": "={{ $json.Short_Title }}",
+            "Viral Script": "={{ $json.Short_Script }}",
+            "Gap 1: Technical": "={{ $json.Gap_1_Detail }}",
+            "Gap 2: Accessories": "={{ $json.Gap_2_Detail }}",
+            "Gap 3: Value": "={{ $json.Gap_3_Detail }}",
+            "Long Form Title": "={{ $json.Long_Title }}",
+            "Date Processed": "={{ $('Schedule Trigger').item.json['Readable date'] }}",
+            "Call to Action": "={{ $json.CTA_Message }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Short Title",
+              "displayName": "Short Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Viral Script",
+              "displayName": "Viral Script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gap 1: Technical",
+              "displayName": "Gap 1: Technical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gap 2: Accessories",
+              "displayName": "Gap 2: Accessories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gap 3: Value",
+              "displayName": "Gap 3: Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Long Form Title",
+              "displayName": "Long Form Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Call to Action",
+              "displayName": "Call to Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Processed",
+              "displayName": "Date Processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1600,
+        -80
+      ],
+      "id": "ef1c5326-f47a-47e1-b445-6102522e2f33",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        96
+      ],
+      "id": "a649e60b-f2f6-4e4a-b95b-21b2d7c94a0a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "g0Uby2vRiyVUwoAp",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### Context: Supreme_Hobbyist Intelligence Brief\nYou are the lead researcher for the \"Supreme_Hobbyist\" TikTok/YouTube channel. I have aggregated 8 different competitor reviews for the {{ $('Edit Fields').item.json.figure }}. \n\nYour goal: Extract the technical \"truth\" that casual reviewers missed and turn it into high-engagement content.\n\n---\n\n### The Data (8 Combined Transcripts):\n{{ $json.aggregatedTranscripts }}\n\n---\n\n### Your Task:\n\n#### 1. The \"Expert\" Critique: What they missed\nAnalyze all 8 transcripts. Identify 3 specific technical details they glossed over. Look for:\n* **Engineering:** Peg tolerance issues or butterfly joint range limitations.\n* **Aesthetics:** Paint shading depth or \"plastic-y\" finishes in certain lighting.\n* **Comparison:** How the engineering stacks up against the latest Figma or S.H.Figuarts releases.\n\n#### 2. TikTok \"Pattern Interrupt\" Script (60s)\nWrite a script for @Supreme_Hobbyist. \n* **The Hook:** Start with: \"Stop listening to the hype on the {{ $('Edit Fields').item.json.figure }}...\" followed by a controversial take based on the data.\n* **The Meat:** Rapid-fire 3 things the other 8 reviewers got wrong.\n* **The Tone:** Fast-paced, technical, and slightly \"gatekeeper-expert\" but helpful.\n* **Constraint:** Keep it under 140 words for a 60s Reel/TikTok.\n\n#### 3. The \"Definitive\" YouTube Outline (10-Minute Deep Dive)\n1. **The Hype Check:** Summary of what the \"8-reviewer consensus\" was.\n2. **The \"Macro\" Look:** Paint apps, shading, and sculpt accuracy.\n3. **The Engineering Torture Test:** Articulation, peg tolerances, and \"shelf-life\" durability.\n4. **The Comparison Tier List:** Where this sits vs. SHF/Figma/Mafex.\n5. **Final Score:** Is it a \"Grail\" or \"Gutter\" figure?\n\n#### 4. Call to Action (CTA)\nWrite a punchy CTA for the @Supreme_Hobbyist brand: \"Drop a 'Scale' in the comments if you want the full articulation breakdown. Follow for more technical figure surgery.\"\n\n---\n\n### Constraints:\n* **Lingo:** Use terms like: butterfly joints, peg tolerance, shading, scale, articulation, shelf presence, and double-joints.\n* **Output:** Clean Markdown format.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert YouTube Content Strategist and Scriptwriter specializing in high-end action figure collecting (specifically the Mafex line). Your goal is to analyze competitor reviews and find \"content gaps\"—things they missed, explained poorly, or failed to show—so we can create a \"definitive\" version of the review. Your tone is enthusiastic, technical about articulation/paint, and community-driven.  Constraint: You MUST return the data in a valid JSON format. You MUST use the exact keys provided below. Do not add, remove, or rename these keys under any circumstances.  Required Schema: { \"Critique\": [ {\"point\": \"string\", \"detail\": \"string\"} ], \"ViralShortScript\": { \"title\": \"string\", \"script\": \"string\" }, \"DefinitiveLongScriptOutline\": { \"title\": \"string\", \"outline\": [ {\"section\": \"string\", \"content\": \"string\"} ] }, \"CallToAction\": { \"message\": \"string\" } }"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1056,
+        -80
+      ],
+      "id": "368f679a-731e-414d-a8ea-edbf9868a010",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9951a9e5-360c-4218-bcd9-2986d0876c51",
+              "name": "figure",
+              "value": "Mafex Spiderman 185",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "0410533c-8775-4a06-b5d5-743149605aa8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -80
+      ],
+      "id": "a571491d-f162-48dd-8730-17354fa66ecb",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0a0809c6-3252-4deb-8f95-f16346da81a5",
+              "leftValue": "={{ $json.snippet }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        864,
+        96
+      ],
+      "id": "1b7ba0f3-772b-456e-ac7e-507fa48601d6",
+      "name": "If"
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2026-03-29T04:06:40.043-04:00",
+          "Readable date": "March 29th 2026, 4:06:40 am",
+          "Readable time": "4:06:40 am",
+          "Day of week": "Sunday",
+          "Year": "2026",
+          "Month": "March",
+          "Day of month": "29",
+          "Hour": "04",
+          "Minute": "06",
+          "Second": "40",
+          "Timezone": "America/New_York (UTC-04:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T10:09:43.060Z",
+      "createdAt": "2026-03-30T10:09:43.060Z",
+      "role": "workflow:owner",
+      "workflowId": "fWKtPSDxYGBluS1758Kfw",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-29T08:29:24.849Z",
+  "versionId": "09ad157a-4acf-4138-92fe-095853fb337a"
+}
