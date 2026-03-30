@@ -5,7 +5,7 @@
   "connections": {},
   "createdAt": "2026-03-30T10:17:52.483Z",
   "id": "xfxvUeiaisFo3YhK",
-  "isArchived": false,
+  "isArchived": true,
   "meta": null,
   "name": "Github Backup Automation",
   "nodes": [],
@@ -31,6 +31,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-03-30T10:17:52.483Z",
-  "versionId": "779d5643-1dd0-4106-a540-58e6d1592ae2"
+  "updatedAt": "2026-03-30T11:10:27.000Z",
+  "versionId": "5b75cd88-93fd-448a-b653-084f89a32475"
 }
