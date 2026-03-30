@@ -1,0 +1,388 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Slack payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Draft Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Draft Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "If reply is approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Slack payload": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If reply is approved": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Draft Sent": {
+      "main": [
+        [
+          {
+            "node": "Update the same block message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Draft Rejected": {
+      "main": [
+        [
+          {
+            "node": "Update the same block message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-28T00:52:40.265Z",
+  "id": "ZaBTO2iWfUNkWvnA2oNBv",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "[2] Earth Chimp - Sending of email reply",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7308cedc-f7e7-4c76-86b7-bb4a5cc56fce",
+        "options": {
+          "responseCode": {
+            "values": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "9ffa3483-7558-4e2a-9ae9-024ac952ee6f",
+      "name": "Webhook",
+      "webhookId": "7308cedc-f7e7-4c76-86b7-bb4a5cc56fce"
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "reply",
+        "threadId": "={{ $json.threadId }}",
+        "message": "={{ $json.draft_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -272
+      ],
+      "id": "29aa2eda-6ee1-454f-b055-43ea0d0843fa",
+      "name": "Reply to a message",
+      "webhookId": "2779ada7-30b0-43fe-842c-7c341f3de8e2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JbM8uVmbYBVPoc6F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Re: Interest in Earth Chimp",
+        "emailType": "text",
+        "message": "={{ $json.draft_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "839440ca-a2c3-438d-ba92-1c1f5fee10b2",
+      "name": "Send a message",
+      "webhookId": "64fab21b-3854-4e45-b98b-b5904bd342fe",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JbM8uVmbYBVPoc6F",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        672,
+        112
+      ],
+      "id": "441849e2-07a4-4eb1-b9ea-d6445d938d91",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4637d5c5-24ba-4cae-b787-ca78b931eafb",
+      "name": "Wait",
+      "webhookId": "2e2d7a88-7365-46b4-b3a1-9aaf4ebb4612"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst payload = typeof body.payload === 'string' ? JSON.parse(body.payload) : body.payload;\nconst action = payload.actions[0];\n\n// Splitting: Email [0], Draft [1], Thread ID [2]\nconst parts = action.value.split('|');\n\nreturn {\n  json: {\n    email: parts[0],\n    draft_reply: parts[1],\n    gmail_thread_id: parts[2],                // The actual Email Thread ID\n    message_ts: payload.container.message_ts, // For Slack Update\n    channel_id: payload.channel.id,           // For Slack Update\n    actionId: action.action_id\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "97a98074-c2c9-4d75-8288-79711d6ce9bc",
+      "name": "Parse Slack payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0e33e706-dd91-4243-8c65-4d01cfd89d55",
+              "leftValue": "={{ $json.actionId }}",
+              "rightValue": "approve_reply",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "29c85501-41d4-4bab-9137-99ede07babc3",
+      "name": "If reply is approved"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d6e73224-14aa-47a8-be91-8913c3fd9dce",
+              "name": "reply",
+              "value": "=✅ *Draft Approved & Sent!* The response was successfully dispatched to {{ $('If reply is approved').item.json.email }}.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "5b5f62c6-0d40-4086-b6dc-68bb83758756",
+      "name": "Edit Fields - Draft Sent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d6e73224-14aa-47a8-be91-8913c3fd9dce",
+              "name": "reply",
+              "value": "=❌ *Draft Rejected.* No further actions required.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        112
+      ],
+      "id": "3b959286-e665-42c5-87ed-832a1eaff3a6",
+      "name": "Edit Fields - Draft Rejected"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Parse Slack payload').item.json.channel_id }}",
+          "mode": "id"
+        },
+        "ts": "={{ $('Parse Slack payload').item.json.message_ts }}",
+        "text": "={{ $json.reply }}",
+        "updateFields": {},
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1152,
+        16
+      ],
+      "id": "4d87643e-09aa-4a4a-9dee-bf23449280c5",
+      "name": "Update the same block message",
+      "webhookId": "32ea43f1-3b36-40f9-a302-bb328faf0dad",
+      "credentials": {
+        "slackApi": {
+          "id": "8LEbRVzgYz9Zc508",
+          "name": "Earth Chimp Lead Manager"
+        }
+      }
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+            "content-type": "application/json",
+            "user-agent": "axios/1.12.0",
+            "content-length": "376",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "host": "localhost:5678",
+            "connection": "close"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "manual_trigger": true,
+            "payload": {
+              "actions": [
+                {
+                  "value": "sarah@fitfuel.com|Hi Sarah! Thanks so much for the reply. We love your content and think you'd be a great fit for the EarthChimp fam. We'll reach out with a full campaign brief and next steps shortly!|thread_001",
+                  "action_id": "reject_reply"
+                }
+              ],
+              "container": {
+                "message_ts": "1774663636.181349"
+              },
+              "channel": {
+                "id": "C0APPD030SV"
+              }
+            }
+          },
+          "webhookUrl": "https://my-earth-chimp-demo.hooks.n8n.cloud/webhook/7308cedc-f7e7-4c76-86b7-bb4a5cc56fce",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T10:09:43.073Z",
+      "createdAt": "2026-03-30T10:09:43.073Z",
+      "role": "workflow:owner",
+      "workflowId": "ZaBTO2iWfUNkWvnA2oNBv",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-28T02:49:08.468Z",
+  "versionId": "5831342b-c1f0-4612-8350-713207d9eb41"
+}
