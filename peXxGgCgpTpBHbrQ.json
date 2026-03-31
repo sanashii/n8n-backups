@@ -1,0 +1,458 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-03-31T09:15:22.000Z",
+    "createdAt": "2026-03-31T09:15:12.542Z",
+    "versionId": "c53d78af-db46-4410-bfd4-df290133ef46",
+    "workflowId": "peXxGgCgpTpBHbrQ",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "52fa7506-6285-46ec-ab10-4f249d7999cc",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json  ",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          208,
+          0
+        ],
+        "id": "65e228a0-8e9a-4e32-af69-db8dda26d6cb",
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Input: currency API response from HTTP Request node                        \n  const rate = $input.first().json.usd.php;                                     \n                                                                                \n  // Get amount from Discord slash command option (by name, not index)          \n  const discordData = $('When Executed by Another Workflow').item.json;         \nconst amountStr = discordData.body.data.options.find(o => o.name ===          \n  'amount_in_usd')?.value;                                                       \n  const amount = parseFloat(amountStr);                                         \n                                                                                \n  const converted = (amount * rate).toLocaleString('en-PH', {                   \n    minimumFractionDigits: 2,\n    maximumFractionDigits: 2                                                    \n  });                                                                           \n  const rateFormatted = rate.toFixed(4);                                        \n                                                                                \n  return [{                                                                     \n    json: {                                                                     \n      message: `👽 I have calculated it! $${amount.toLocaleString()} USD =      \n  **₱${converted}** at today's rate of ₱${rateFormatted}/USD. My alien          \n  mathematics are never wrong.`,\n      token: discordData.body.token,                                            \n      application_id: discordData.body.application_id                           \n    }                                                                           \n  }]; "
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          416,
+          0
+        ],
+        "id": "090ab0c9-a789-44f4-832e-4b3303b728d7",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-storm-001",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          640,
+          0
+        ],
+        "id": "de28d820-e752-43a1-ab03-abf4f3c9f9b8",
+        "name": "Has Interaction Token? (Storm)"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          928,
+          0
+        ],
+        "id": "36aa822c-62a4-4186-84d8-c9cb0d8753f2",
+        "name": "Send Discord Follow-up (Conversion)"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Interaction Token? (Storm)": {
+        "main": [
+          [
+            {
+              "node": "Send Discord Follow-up (Conversion)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Has Interaction Token? (Storm)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version c53d78af",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "c53d78af-db46-4410-bfd4-df290133ef46",
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Interaction Token? (Storm)": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Follow-up (Conversion)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Has Interaction Token? (Storm)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-31T05:03:00.331Z",
+  "id": "peXxGgCgpTpBHbrQ",
+  "isArchived": false,
+  "meta": null,
+  "name": "Okarun - USD to PHP",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "52fa7506-6285-46ec-ab10-4f249d7999cc",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "65e228a0-8e9a-4e32-af69-db8dda26d6cb",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: currency API response from HTTP Request node                        \n  const rate = $input.first().json.usd.php;                                     \n                                                                                \n  // Get amount from Discord slash command option (by name, not index)          \n  const discordData = $('When Executed by Another Workflow').item.json;         \nconst amountStr = discordData.body.data.options.find(o => o.name ===          \n  'amount_in_usd')?.value;                                                       \n  const amount = parseFloat(amountStr);                                         \n                                                                                \n  const converted = (amount * rate).toLocaleString('en-PH', {                   \n    minimumFractionDigits: 2,\n    maximumFractionDigits: 2                                                    \n  });                                                                           \n  const rateFormatted = rate.toFixed(4);                                        \n                                                                                \n  return [{                                                                     \n    json: {                                                                     \n      message: `👽 I have calculated it! $${amount.toLocaleString()} USD =      \n  **₱${converted}** at today's rate of ₱${rateFormatted}/USD. My alien          \n  mathematics are never wrong.`,\n      token: discordData.body.token,                                            \n      application_id: discordData.body.application_id                           \n    }                                                                           \n  }]; "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "090ab0c9-a789-44f4-832e-4b3303b728d7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-storm-001",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        0
+      ],
+      "id": "de28d820-e752-43a1-ab03-abf4f3c9f9b8",
+      "name": "Has Interaction Token? (Storm)"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        928,
+        0
+      ],
+      "id": "36aa822c-62a4-4186-84d8-c9cb0d8753f2",
+      "name": "Send Discord Follow-up (Conversion)"
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv1541552.hstgr.cloud",
+            "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
+            "content-length": "1947",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.227.62.178",
+            "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "bed0e4eeabd6",
+            "x-real-ip": "35.227.62.178",
+            "x-signature-ed25519": "1ebbcd906875faa000b78905265dde1bd713a585505666ae9653ac5ac00c5504abd46b939f8ec8bd66e1d06496de13da3a173b945d2f6d1eff871c4244bd2f07",
+            "x-signature-timestamp": "1774934101",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "app_permissions": "9007199254740991",
+            "application_id": "1488071194669481994",
+            "attachment_size_limit": 10485760,
+            "authorizing_integration_owners": {
+              "0": "1488068132198420564"
+            },
+            "channel": {
+              "flags": 0,
+              "guild_id": "1488068132198420564",
+              "id": "1488083586870677524",
+              "last_message_id": "1488404622325579909",
+              "name": "leyte-storm-watch",
+              "nsfw": false,
+              "parent_id": "1488068134190448842",
+              "permissions": "9007199254740991",
+              "position": 6,
+              "rate_limit_per_user": 0,
+              "topic": null,
+              "type": 0
+            },
+            "channel_id": "1488083586870677524",
+            "context": 0,
+            "data": {
+              "id": "1488103431280525362",
+              "name": "conversion",
+              "options": [
+                {
+                  "name": "base_currency",
+                  "type": 3,
+                  "value": "1300"
+                }
+              ],
+              "type": 1
+            },
+            "entitlement_sku_ids": [],
+            "entitlements": [],
+            "guild": {
+              "features": [],
+              "id": "1488068132198420564",
+              "locale": "en-US"
+            },
+            "guild_id": "1488068132198420564",
+            "guild_locale": "en-US",
+            "id": "1488406240588468234",
+            "locale": "en-US",
+            "member": {
+              "avatar": null,
+              "banner": null,
+              "communication_disabled_until": null,
+              "deaf": false,
+              "flags": 0,
+              "joined_at": "2026-03-30T06:51:30.063000+00:00",
+              "mute": false,
+              "nick": null,
+              "pending": false,
+              "permissions": "9007199254740991",
+              "premium_since": null,
+              "roles": [],
+              "unusual_dm_activity_until": null,
+              "user": {
+                "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                "avatar_decoration_data": {
+                  "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                  "expires_at": null,
+                  "sku_id": "1481384635886862397"
+                },
+                "clan": null,
+                "collectibles": {
+                  "nameplate": {
+                    "asset": "nameplates/spider-man/1481388758455550114/",
+                    "expires_at": null,
+                    "label": "A glowing red and black spider resting on blue-white spider webs",
+                    "palette": "crimson",
+                    "sku_id": "1481388758455550114"
+                  }
+                },
+                "discriminator": "0",
+                "display_name_styles": null,
+                "global_name": "sanashii",
+                "id": "550449378205106196",
+                "primary_guild": null,
+                "public_flags": 64,
+                "username": "sanashii1"
+              }
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ4ODQwNjI0MDU4ODQ2ODIzNDpXQlUxeE9QbkQ2NmFISXVWTENsZEttejRFVUpEeTdxdmtSRG9CdlFNVUdxR1dGTnF4UTBGWDFxQUpZYTk4dWw4MlkyT2M4UHBGWWRNem1qNzNkMDF3U1lKZGxVa2tleTlYZUp5WERaaW9yTVRSUWxhMGNNSWdIbE1HNkdhQ3FWYQ",
+            "type": 2,
+            "version": 1
+          },
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/okarun-interactions",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-31T05:03:00.335Z",
+      "createdAt": "2026-03-31T05:03:00.335Z",
+      "role": "workflow:owner",
+      "workflowId": "peXxGgCgpTpBHbrQ",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-31T09:15:13.290Z",
+  "versionId": "c53d78af-db46-4410-bfd4-df290133ef46"
+}
