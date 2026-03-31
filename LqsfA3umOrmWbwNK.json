@@ -1,0 +1,408 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-03-31T09:51:50.000Z",
+    "createdAt": "2026-03-31T09:51:48.673Z",
+    "versionId": "6ae07746-ed61-4c68-a066-7a17fa82c9ec",
+    "workflowId": "LqsfA3umOrmWbwNK",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -64,
+          112
+        ],
+        "id": "c436f335-6f95-4b9a-8236-a65f81faf111",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-storm-001",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          416,
+          112
+        ],
+        "id": "42ff916c-fbd4-4a0c-bb00-07b168f75fa6",
+        "name": "Has Interaction Token? (Storm)"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          736,
+          112
+        ],
+        "id": "1ff00dd9-67bc-4103-9276-92d4b2d84d0e",
+        "name": "Send Discord Follow-up (Conversion)"
+      },
+      {
+        "parameters": {
+          "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// 1. Get Monthly Income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value  \n);\n\n// 2. SSS 2025/2026 Rules\n// Rate is 15%. Max MSC is now ₱35,000. Min MSC is ₱5,000.\nconst msc = Math.min(Math.max(monthlyIncome, 5000), 35000);\nconst sss = Math.round(msc * 0.15); \n// Note: This ₱5,250 max includes the mandatory WISP (Pension Booster) for income >₱20k.\n\n// 3. PhilHealth 2025/2026 Rules\n// Rate is 5%. Floor is ₱10,000. Ceiling is ₱100,000.\nconst philhealth = Math.min(Math.max(monthlyIncome * 0.05, 500), 5000);\n\n// 4. Pag-IBIG\nconst pagibig = 200; // Standard contribution for income >₱5,000\n\n// 5. BIR Tax Logic (TRAIN Law Graduated vs 8% Flat)\nconst annualIncome = monthlyIncome * 12;\n\n// 8% Flat Rate Calculation (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualIncome - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate Calculation (2023-2026 Table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualIncome) / 12;\n\n// 6. Final Take-Home\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// 7. Formatter and Message Building\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nreturn [{\n  json: {\n    message: [\n      `👽 I have computed your government obligations, **${discordData.body.member.user.global_name}**! My alien tax algorithms are flawless.`,\n      ``,\n      `💰 **Monthly Income:** ${fmt(monthlyIncome)}`,\n      ``,\n      `**📋 Monthly Government Contributions:**`,\n      `> 🔵 SSS: ${fmt(sss)} (at 15% rate)`,\n      `> 🟢 PhilHealth: ${fmt(philhealth)} (at 5% rate)`,\n      `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n      ``,\n      `**🧾 BIR Income Tax (monthly set-aside):**`,\n      `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n      `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n      ``,\n      `**🏠 Estimated Take-Home:**`,\n      `> If 8% flat: **${fmt(takeHome8)}**`,\n      `> If graduated: **${fmt(takeHomeGrad)}**`,\n      ``,\n      `⚠️ *Tax is paid quarterly to BIR. SSS max MSC is now ₱35,000 for 2025-2026. Set aside these amounts monthly to stay ready.*`\n    ].join('\\n'),\n    token: discordData.body.token,\n    application_id: discordData.body.application_id\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          176,
+          112
+        ],
+        "id": "7d9efe1f-c38f-4e90-945e-1452f280680d",
+        "name": "Code in JavaScript1"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Interaction Token? (Storm)": {
+        "main": [
+          [
+            {
+              "node": "Send Discord Follow-up (Conversion)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript1": {
+        "main": [
+          [
+            {
+              "node": "Has Interaction Token? (Storm)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version 6ae07746",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "6ae07746-ed61-4c68-a066-7a17fa82c9ec",
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Interaction Token? (Storm)": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Follow-up (Conversion)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Has Interaction Token? (Storm)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-03-31T09:17:18.874Z",
+  "id": "LqsfA3umOrmWbwNK",
+  "isArchived": false,
+  "meta": null,
+  "name": "Okarun - Tax Computation",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        112
+      ],
+      "id": "c436f335-6f95-4b9a-8236-a65f81faf111",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-storm-001",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        112
+      ],
+      "id": "42ff916c-fbd4-4a0c-bb00-07b168f75fa6",
+      "name": "Has Interaction Token? (Storm)"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        736,
+        112
+      ],
+      "id": "1ff00dd9-67bc-4103-9276-92d4b2d84d0e",
+      "name": "Send Discord Follow-up (Conversion)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// 1. Get Monthly Income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value  \n);\n\n// 2. SSS 2025/2026 Rules\n// Rate is 15%. Max MSC is now ₱35,000. Min MSC is ₱5,000.\nconst msc = Math.min(Math.max(monthlyIncome, 5000), 35000);\nconst sss = Math.round(msc * 0.15); \n// Note: This ₱5,250 max includes the mandatory WISP (Pension Booster) for income >₱20k.\n\n// 3. PhilHealth 2025/2026 Rules\n// Rate is 5%. Floor is ₱10,000. Ceiling is ₱100,000.\nconst philhealth = Math.min(Math.max(monthlyIncome * 0.05, 500), 5000);\n\n// 4. Pag-IBIG\nconst pagibig = 200; // Standard contribution for income >₱5,000\n\n// 5. BIR Tax Logic (TRAIN Law Graduated vs 8% Flat)\nconst annualIncome = monthlyIncome * 12;\n\n// 8% Flat Rate Calculation (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualIncome - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate Calculation (2023-2026 Table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualIncome) / 12;\n\n// 6. Final Take-Home\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// 7. Formatter and Message Building\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nreturn [{\n  json: {\n    message: [\n      `👽 I have computed your government obligations, **${discordData.body.member.user.global_name}**! My alien tax algorithms are flawless.`,\n      ``,\n      `💰 **Monthly Income:** ${fmt(monthlyIncome)}`,\n      ``,\n      `**📋 Monthly Government Contributions:**`,\n      `> 🔵 SSS: ${fmt(sss)} (at 15% rate)`,\n      `> 🟢 PhilHealth: ${fmt(philhealth)} (at 5% rate)`,\n      `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n      ``,\n      `**🧾 BIR Income Tax (monthly set-aside):**`,\n      `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n      `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n      ``,\n      `**🏠 Estimated Take-Home:**`,\n      `> If 8% flat: **${fmt(takeHome8)}**`,\n      `> If graduated: **${fmt(takeHomeGrad)}**`,\n      ``,\n      `⚠️ *Tax is paid quarterly to BIR. SSS max MSC is now ₱35,000 for 2025-2026. Set aside these amounts monthly to stay ready.*`\n    ].join('\\n'),\n    token: discordData.body.token,\n    application_id: discordData.body.application_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        112
+      ],
+      "id": "7d9efe1f-c38f-4e90-945e-1452f280680d",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv1541552.hstgr.cloud",
+            "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
+            "content-length": "1939",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.237.4.214",
+            "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "bed0e4eeabd6",
+            "x-real-ip": "35.237.4.214",
+            "x-signature-ed25519": "2afdbbb9e55f7b96f72e4767cb9cb52aacf0113255ade03090265cfa241a4c767c80afaef79f96286f184a99bf4811aa19e405e10b8bafd6e35128a7e8faf200",
+            "x-signature-timestamp": "1774948744",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "app_permissions": "9007199254740991",
+            "application_id": "1488071194669481994",
+            "attachment_size_limit": 10485760,
+            "authorizing_integration_owners": {
+              "0": "1488068132198420564"
+            },
+            "channel": {
+              "flags": 0,
+              "guild_id": "1488068132198420564",
+              "id": "1488083586870677524",
+              "last_message_id": "1488462999797891169",
+              "name": "leyte-storm-watch",
+              "nsfw": false,
+              "parent_id": "1488068134190448842",
+              "permissions": "9007199254740991",
+              "position": 6,
+              "rate_limit_per_user": 0,
+              "topic": null,
+              "type": 0
+            },
+            "channel_id": "1488083586870677524",
+            "context": 0,
+            "data": {
+              "id": "1488080878121779393",
+              "name": "tax",
+              "options": [
+                {
+                  "name": "amount",
+                  "type": 3,
+                  "value": "1800"
+                }
+              ],
+              "type": 1
+            },
+            "entitlement_sku_ids": [],
+            "entitlements": [],
+            "guild": {
+              "features": [],
+              "id": "1488068132198420564",
+              "locale": "en-US"
+            },
+            "guild_id": "1488068132198420564",
+            "guild_locale": "en-US",
+            "id": "1488467658788831353",
+            "locale": "en-US",
+            "member": {
+              "avatar": null,
+              "banner": null,
+              "communication_disabled_until": null,
+              "deaf": false,
+              "flags": 0,
+              "joined_at": "2026-03-30T06:51:30.063000+00:00",
+              "mute": false,
+              "nick": null,
+              "pending": false,
+              "permissions": "9007199254740991",
+              "premium_since": null,
+              "roles": [],
+              "unusual_dm_activity_until": null,
+              "user": {
+                "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                "avatar_decoration_data": {
+                  "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                  "expires_at": null,
+                  "sku_id": "1481384635886862397"
+                },
+                "clan": null,
+                "collectibles": {
+                  "nameplate": {
+                    "asset": "nameplates/spider-man/1481388758455550114/",
+                    "expires_at": null,
+                    "label": "A glowing red and black spider resting on blue-white spider webs",
+                    "palette": "crimson",
+                    "sku_id": "1481388758455550114"
+                  }
+                },
+                "discriminator": "0",
+                "display_name_styles": null,
+                "global_name": "supremodude",
+                "id": "550449378205106196",
+                "primary_guild": null,
+                "public_flags": 64,
+                "username": "supremodude7"
+              }
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ4ODQ2NzY1ODc4ODgzMTM1MzpHRkM0V1N5dTNwQkRucVlVRTN1OXFQMGtDdEFYalVEb0JBenVWdHdKSTFjdnh0OVBPWUN3VTRZNmVkR2NjZUdzVzlYWHhZUzZnaEdpSUl6UlNWZHBWVGRWaFVBSWdDbGxtSFRhaDJLYTlBcE1NTVNlczJ1a1BvclhMT2pEeGU3Wg",
+            "type": 2,
+            "version": 1
+          },
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/okarun-interactions",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-03-31T09:17:18.884Z",
+      "createdAt": "2026-03-31T09:17:18.884Z",
+      "role": "workflow:owner",
+      "workflowId": "LqsfA3umOrmWbwNK",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-31T09:51:48.672Z",
+  "versionId": "6ae07746-ed61-4c68-a066-7a17fa82c9ec"
+}
