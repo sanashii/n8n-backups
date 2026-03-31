@@ -1,45 +1,11 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-03-30T10:13:04.000Z",
-    "createdAt": "2026-03-30T10:09:43.087Z",
-    "versionId": "1006555e-6324-4177-b3d8-b7f821cc3074",
+    "updatedAt": "2026-03-31T05:05:49.000Z",
+    "createdAt": "2026-03-31T05:05:33.113Z",
+    "versionId": "23aa8163-5bfe-4d12-a058-2bf6a7165a3b",
     "workflowId": "re_Fucd_a-Lmv6Y4XBPus",
     "nodes": [
-      {
-        "parameters": {
-          "text": "=OPEN-METEO DATA:\nWind Gusts: {{ $node[\"Get OpenMeteo details\"].json.current.wind_gusts_10m }} km/h\nPrecipitation: {{ $node[\"Get OpenMeteo details\"].json.current.precipitation }} mm\n\nPAGASA REGIONAL FORECAST:\n{{ $node[\"Code in JavaScript\"].json.locations[0].location }}: {{ $node[\"Code in JavaScript\"].json.locations[0].forecast }}\nThunderstorm Alert: {{ $node[\"Code in JavaScript\"].json.alerts.thunderstorm }}\n\nGALE WARNING STATUS:\n{{ $node[\"Code in JavaScript1\"].json.status }}\nAffected Areas: {{ $node[\"Code in JavaScript1\"].json.affected_my_areas }}",
-          "attributes": {
-            "attributes": [
-              {
-                "name": "overall_risk",
-                "description": "Rate the travel risk as \"LOW\", \"MODERATE\", or \"HIGH\" based on wind > 40km/h or Gale Warnings."
-              },
-              {
-                "name": "boat_cancellation_likelihood",
-                "description": "Percentage chance (0-100%) that boats between Cebu and Naval will be cancelled."
-              },
-              {
-                "name": "message_summary",
-                "description": "Create a short, punchy 2-line update for WhatsApp. Use emojis like ⚠️ or 🚢. Mention Biliran specifically."
-              },
-              {
-                "name": "is_emergency",
-                "description": "Set to True only if a Gale Warning is active for Leyte/Biliran or Wind Gusts > 60km/h."
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "@n8n/n8n-nodes-langchain.informationExtractor",
-        "typeVersion": 1.2,
-        "position": [
-          1680,
-          144
-        ],
-        "id": "c0b4ec88-2ac6-4a9f-a05c-589b0a2b0bda",
-        "name": "Information Extractor"
-      },
       {
         "parameters": {
           "rule": {
@@ -54,54 +20,72 @@
         "type": "n8n-nodes-base.scheduleTrigger",
         "typeVersion": 1.3,
         "position": [
-          -144,
-          16
+          -704,
+          -256
         ],
-        "id": "8d031b42-6142-4963-907b-e73e57d98854",
+        "id": "71e249c8-a555-40b1-9e5f-d011c829f2ac",
         "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -704,
+          -32
+        ],
+        "id": "4233be54-c459-4be1-962a-91847756249d",
+        "name": "When Executed by Another Workflow"
       },
       {
         "parameters": {
           "method": "POST",
           "url": "https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin",
-          "options": {}
+          "options": {
+            "allowUnauthorizedCerts": true
+          }
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.4,
         "position": [
-          176,
-          16
+          -384,
+          -256
         ],
-        "id": "596e3377-5178-4b86-852e-64747c370598",
+        "id": "85b4a48f-4c29-419c-9dfd-d90b2cbdff72",
         "name": "Get PAGASA SWB"
       },
       {
         "parameters": {
           "url": "https://api.open-meteo.com/v1/forecast?latitude=11.5622&longitude=124.3944&current=precipitation,wind_speed_10m,wind_gusts_10m&hourly=precipitation,wind_speed_10m,wind_gusts_10m&daily=wind_gusts_10m_max,precipitation_sum&timezone=Asia%2FManila&forecast_days=3",
-          "options": {}
+          "options": {
+            "allowUnauthorizedCerts": true
+          }
         },
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.4,
         "position": [
-          176,
-          240
+          -384,
+          -32
         ],
-        "id": "65e4e966-d321-466d-b64f-2ce4e99ce2ad",
+        "id": "c3f3409c-c721-4141-a305-2f5a21964d51",
         "name": "Get OpenMeteo details"
       },
       {
         "parameters": {
-          "url": "https://www.pagasa.dost.gov.ph/regional-forecast/visprsd",
+          "mode": "combine",
+          "combineBy": "combineAll",
           "options": {}
         },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.4,
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
         "position": [
-          848,
-          144
+          -144,
+          -128
         ],
-        "id": "ca8c7961-a7f8-4112-9055-af1aa128e6ae",
-        "name": "Get Visayas PAGASA Forecast"
+        "id": "b546faad-82ad-4d21-9733-eaff733915e6",
+        "name": "Merge"
       },
       {
         "parameters": {
@@ -125,7 +109,7 @@
               {
                 "id": "5d7823bf-7eec-4328-8f25-31d1322d4a23",
                 "leftValue": "={{ $json.current.wind_gusts_10m }}",
-                "rightValue": "={{ 40\n}}",
+                "rightValue": 40,
                 "operator": {
                   "type": "number",
                   "operation": "gt"
@@ -149,49 +133,37 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          624,
-          144
+          64,
+          -128
         ],
-        "id": "57993234-faa8-479c-81ba-449d87693f0d",
+        "id": "282a3d1e-35fe-458d-b376-2ac38cefccad",
         "name": "If"
       },
       {
-        "parameters": {},
-        "type": "n8n-nodes-base.noOp",
-        "typeVersion": 1,
-        "position": [
-          864,
-          384
-        ],
-        "id": "0f3eda83-8111-48f0-8482-e3376433efd4",
-        "name": "No Operation, do nothing"
-      },
-      {
         "parameters": {
-          "mode": "combine",
-          "combineBy": "combineAll",
+          "url": "https://www.pagasa.dost.gov.ph/regional-forecast/visprsd",
           "options": {}
         },
-        "type": "n8n-nodes-base.merge",
-        "typeVersion": 3.2,
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
         "position": [
-          416,
-          144
+          352,
+          -128
         ],
-        "id": "7ade3cbd-b890-4e75-b5c3-1c3861d382e5",
-        "name": "Merge"
+        "id": "00c19d48-9372-41e1-94ea-3694022f6950",
+        "name": "Get Visayas PAGASA Forecast"
       },
       {
         "parameters": {
-          "jsCode": "// Get the HTML content\nconst html = $input.first().json.data || $input.first().json.body || \"\";\n\n// We'll look for these specific keys in the HTML\nconst targets = [\n  { label: \"Cebu\", search: \"Cebu City\" },\n  { label: \"Naval\", search: \"Naval\" },\n  { label: \"Biliran\", search: \"Biliran\" }\n];\n\nconst results = targets.map(target => {\n  // This Regex looks for the city name and grabs everything until the next HTML tag or coordinate\n  // It handles the \"partly cloudy\" text seen in your screenshot.\n  const regex = new RegExp(`${target.search}[\\\\s\\\\S]{1,50}?<div[^>]*>([\\\\s\\\\S]{5,150}?)<\\\\/div>`, 'i');\n  const match = html.match(regex);\n  \n  let forecastText = match ? match[1].replace(/<[^>]*>?/gm, '').trim() : \"Clear Skies\"; \n  \n  // If the scrape fails but we see \"Clear Skies\" icons in the HTML, \n  // we default to a safe \"Fair Weather\" unless a warning is found below.\n  return {\n    location: target.label,\n    forecast: forecastText\n  };\n});\n\n// Capture the CRITICAL alerts for boat travel\nconst thunderstormAlert = html.match(/Thunderstorm (Watch|Information) #VISPRSD[\\s\\S]{1,500}?(within 12 hours|persist)/i);\nconst galeWarning = html.match(/Gale Warning[\\s\\S]{1,500}?(Rough to Very Rough)/i);\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      locations: results,\n      alerts: {\n        thunderstorm: thunderstormAlert ? thunderstormAlert[0].replace(/<[^>]*>?/gm, ' ').trim() : \"None\",\n        gale_warning: galeWarning ? \"ACTIVE GALE WARNING - Boats likely stopped\" : \"None\"\n      }\n    }\n  }\n];"
+          "jsCode": "// Get the HTML content\nconst html = $input.first().json.data || $input.first().json.body || \"\";\n\n// We'll look for these specific keys in the HTML\nconst targets = [\n  { label: \"Cebu\", search: \"Cebu City\" },\n  { label: \"Naval\", search: \"Naval\" },\n  { label: \"Biliran\", search: \"Biliran\" }\n];\n\nconst results = targets.map(target => {\n  const regex = new RegExp(`${target.search}[\\\\s\\\\S]{1,50}?<div[^>]*>([\\\\s\\\\S]{5,150}?)<\\\\/div>`, 'i');\n  const match = html.match(regex);\n  let forecastText = match ? match[1].replace(/<[^>]*>?/gm, '').trim() : \"Clear Skies\";\n  return { location: target.label, forecast: forecastText };\n});\n\nconst thunderstormAlert = html.match(/Thunderstorm (Watch|Information) #VISPRSD[\\s\\S]{1,500}?(within 12 hours|persist)/i);\nconst galeWarning = html.match(/Gale Warning[\\s\\S]{1,500}?(Rough to Very Rough)/i);\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      locations: results,\n      alerts: {\n        thunderstorm: thunderstormAlert ? thunderstormAlert[0].replace(/<[^>]*>?/gm, ' ').trim() : \"None\",\n        gale_warning: galeWarning ? \"ACTIVE GALE WARNING - Boats likely stopped\" : \"None\"\n      }\n    }\n  }\n];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          1056,
-          144
+          592,
+          -128
         ],
-        "id": "de1d89df-a021-4794-993a-49b44d232e33",
+        "id": "6fcf4d55-ea62-4afe-8bbb-1a3c9f8077cc",
         "name": "Code in JavaScript"
       },
       {
@@ -202,24 +174,58 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.4,
         "position": [
-          1264,
-          144
+          816,
+          -128
         ],
-        "id": "c67ce15d-a729-480d-b252-e4c85d597e77",
+        "id": "082775d5-2cc5-4883-8073-df69eb7568c9",
         "name": "HTTP Request"
       },
       {
         "parameters": {
-          "jsCode": "const html = $input.first().json.data || $input.first().json.body || \"\";\n\n// 1. Check if the \"No Gale Warning\" text exists\nconst noWarningFound = html.includes(\"no Gale Warning Issued\") || html.includes(\"No active gale warning\");\n\n// 2. Define your \"Critical Zones\" for the Leyte move\nconst myZones = [\"Leyte\", \"Biliran\", \"Naval\", \"Carigara\", \"Ormoc\"];\n\n// 3. Search for any mention of your zones in the HTML\n// This acts as a fallback even if the parsing isn't perfect\nconst mentionedZones = myZones.filter(zone => \n  new RegExp(`\\\\b${zone}\\\\b`, 'i').test(html)\n);\n\n// 4. Determine the Boat Status\nlet boatStatus = \"PROBABLY OK\";\nlet alertLevel = \"Green\";\n\nif (!noWarningFound) {\n  boatStatus = \"WARNING ACTIVE - CHECK COAST GUARD\";\n  alertLevel = \"Yellow\";\n}\n\nif (mentionedZones.length > 0 && !noWarningFound) {\n  boatStatus = \"DANGER: LEYTE/BILIRAN AFFECTED - BOATS LIKELY STOPPED\";\n  alertLevel = \"Red\";\n}\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      is_gale_active: !noWarningFound,\n      affected_my_areas: mentionedZones,\n      status: boatStatus,\n      alert_color: alertLevel,\n      raw_text_summary: html.replace(/<[^>]*>?/gm, ' ').substring(0, 500) // First 500 chars of text\n    }\n  }\n];"
+          "jsCode": "const html = $input.first().json.data || $input.first().json.body || \"\";\n\nconst noWarningFound = html.includes(\"no Gale Warning Issued\") || html.includes(\"No active gale warning\");\nconst myZones = [\"Leyte\", \"Biliran\", \"Naval\", \"Carigara\", \"Ormoc\"];\nconst mentionedZones = myZones.filter(zone =>\n  new RegExp(`\\\\b${zone}\\\\b`, 'i').test(html)\n);\n\nlet boatStatus = \"PROBABLY OK\";\nlet alertLevel = \"Green\";\n\nif (!noWarningFound) {\n  boatStatus = \"WARNING ACTIVE - CHECK COAST GUARD\";\n  alertLevel = \"Yellow\";\n}\n\nif (mentionedZones.length > 0 && !noWarningFound) {\n  boatStatus = \"DANGER: LEYTE/BILIRAN AFFECTED - BOATS LIKELY STOPPED\";\n  alertLevel = \"Red\";\n}\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      is_gale_active: !noWarningFound,\n      affected_my_areas: mentionedZones,\n      status: boatStatus,\n      alert_color: alertLevel,\n      raw_text_summary: html.replace(/<[^>]*>?/gm, ' ').substring(0, 500)\n    }\n  }\n];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          1472,
-          144
+          1072,
+          -128
         ],
-        "id": "1dafec25-ca37-4172-b116-3f76f73ed8c4",
+        "id": "5a8adb4e-d141-47e6-a972-cd19528b51a6",
         "name": "Code in JavaScript1"
+      },
+      {
+        "parameters": {
+          "text": "=OPEN-METEO DATA:\nWind Gusts: {{ $node[\"Get OpenMeteo details\"].json.current.wind_gusts_10m }} km/h\nPrecipitation: {{ $node[\"Get OpenMeteo details\"].json.current.precipitation }} mm\n\nPAGASA REGIONAL FORECAST:\n{{ $node[\"Code in JavaScript\"].json.locations[0].location }}: {{ $node[\"Code in JavaScript\"].json.locations[0].forecast }}\nThunderstorm Alert: {{ $node[\"Code in JavaScript\"].json.alerts.thunderstorm }}\n\nGALE WARNING STATUS:\n{{ $node[\"Code in JavaScript1\"].json.status }}\nAffected Areas: {{ $node[\"Code in JavaScript1\"].json.affected_my_areas }}",
+          "attributes": {
+            "attributes": [
+              {
+                "name": "overall_risk",
+                "description": "Rate the travel risk as \"LOW\", \"MODERATE\", or \"HIGH\" based on wind > 40km/h or Gale Warnings."
+              },
+              {
+                "name": "boat_cancellation_likelihood",
+                "description": "Percentage chance (0-100%) that boats between Cebu and Naval will be cancelled."
+              },
+              {
+                "name": "message_summary",
+                "description": "Write a short 2-3 line Discord update in the voice of Okarun (Ken Takakura) from Dandadan — a nerdy, dramatic, slightly awkward teenage boy who is obsessed with the occult and aliens. He speaks with intense passion and over-the-top energy. Use phrases like 'My readings indicate...', 'This is no ordinary storm!', 'I have analyzed the data!', or 'According to my calculations...'. Reference aliens or supernatural phenomena humorously if conditions are bad. Use emojis like ⚠️ 👽 🌊 🚢 🔭. Mention Biliran and the Cebu-Naval route specifically."
+              },
+              {
+                "name": "is_emergency",
+                "description": "Set to True only if a Gale Warning is active for Leyte/Biliran or Wind Gusts > 60km/h."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+        "typeVersion": 1.2,
+        "position": [
+          1296,
+          -128
+        ],
+        "id": "478b1309-10d9-463d-a312-73fa523f6890",
+        "name": "Information Extractor"
       },
       {
         "parameters": {
@@ -229,10 +235,10 @@
         "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
         "typeVersion": 1,
         "position": [
-          1616,
-          352
+          1264,
+          80
         ],
-        "id": "c9eb7dfd-c23b-4c7e-8c8a-e365152a54d6",
+        "id": "8eac6ea0-9376-47a7-9301-220de8845257",
         "name": "OpenRouter Chat Model",
         "credentials": {
           "openRouterApi": {
@@ -243,56 +249,166 @@
       },
       {
         "parameters": {
-          "resource": "message",
-          "guildId": {
-            "__rl": true,
-            "value": "1488068132198420564",
-            "mode": "list",
-            "cachedResultName": "bau & thea",
-            "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-storm-001",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
           },
-          "channelId": {
-            "__rl": true,
-            "value": "1488083586870677524",
-            "mode": "list",
-            "cachedResultName": "leyte-storm-watch",
-            "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1488083586870677524"
-          },
-          "content": "={{ $json.output.message_summary }}",
           "options": {}
         },
-        "type": "n8n-nodes-base.discord",
-        "typeVersion": 2,
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
         "position": [
-          2032,
-          144
+          1680,
+          -128
         ],
-        "id": "c3b0447e-dd01-4a10-95f2-e80bc1e8f2d2",
-        "name": "Send a message",
-        "webhookId": "7590072d-da53-42ee-8a05-81e0c94c058e",
-        "credentials": {
-          "discordBotApi": {
-            "id": "QXXgqWlMdAoLfJM5",
-            "name": "Okarun Discord Bot"
-          }
-        }
+        "id": "b48bb03e-f8f2-40eb-b2aa-d083e5b1c5f7",
+        "name": "Has Interaction Token? (Storm)"
       },
       {
         "parameters": {
-          "inputSource": "passthrough"
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $('Information Extractor').item.json.output.message_summary }) }}",
+          "options": {}
         },
-        "type": "n8n-nodes-base.executeWorkflowTrigger",
-        "typeVersion": 1.1,
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
         "position": [
-          -144,
-          240
+          1952,
+          -128
         ],
-        "id": "8a2684d1-3cd3-4d29-aece-c1d752f04f0c",
-        "name": "When Executed by Another Workflow"
+        "id": "3725ce97-fa0d-4f27-9aa1-a122ef56588a",
+        "name": "Send Discord Follow-up (Storm)"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "db7e7f76-a976-4007-a39e-7f119f926e26",
+                "name": "message",
+                "value": "👽 My instruments detect NO paranormal storm activity over Biliran! 🚢 I have analyzed the PAGASA data and wind readings — the Cebu to Naval route appears to be safe for travel. ...Not that I was worried. I was simply being thorough.",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          352,
+          144
+        ],
+        "id": "bffc91fd-ce62-4649-ba73-c5dab6a5cfe4",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-clear-001",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          576,
+          144
+        ],
+        "id": "97c176c0-a3a2-4410-8b4c-01d0a17ae4a4",
+        "name": "Has Interaction Token? (Clear)"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $('Edit Fields').item.json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          816,
+          144
+        ],
+        "id": "abfb2b09-4deb-4cea-97ef-bcb228b90756",
+        "name": "Send Discord Follow-up (Clear)"
       }
     ],
     "connections": {
       "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get PAGASA SWB",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get OpenMeteo details",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
         "main": [
           [
             {
@@ -319,17 +435,6 @@
           ]
         ]
       },
-      "Get Visayas PAGASA Forecast": {
-        "main": [
-          [
-            {
-              "node": "Code in JavaScript",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Get OpenMeteo details": {
         "main": [
           [
@@ -337,6 +442,17 @@
               "node": "Merge",
               "type": "main",
               "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -352,18 +468,18 @@
           ],
           [
             {
-              "node": "No Operation, do nothing",
+              "node": "Edit Fields",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Merge": {
+      "Get Visayas PAGASA Forecast": {
         "main": [
           [
             {
-              "node": "If",
+              "node": "Code in JavaScript",
               "type": "main",
               "index": 0
             }
@@ -418,23 +534,40 @@
         "main": [
           [
             {
-              "node": "Send a message",
+              "node": "Has Interaction Token? (Storm)",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "When Executed by Another Workflow": {
+      "Has Interaction Token? (Storm)": {
         "main": [
           [
             {
-              "node": "Get PAGASA SWB",
+              "node": "Send Discord Follow-up (Storm)",
               "type": "main",
               "index": 0
-            },
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
             {
-              "node": "Get OpenMeteo details",
+              "node": "Has Interaction Token? (Clear)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Interaction Token? (Clear)": {
+        "main": [
+          [
+            {
+              "node": "Send Discord Follow-up (Clear)",
               "type": "main",
               "index": 0
             }
@@ -442,14 +575,30 @@
         ]
       }
     },
-    "authors": "import",
-    "name": "Version bbd93bfa",
+    "authors": "Andrea Baulita",
+    "name": "Version 23aa8163",
     "description": "",
     "autosaved": false
   },
-  "activeVersionId": "1006555e-6324-4177-b3d8-b7f821cc3074",
+  "activeVersionId": "23aa8163-5bfe-4d12-a058-2bf6a7165a3b",
   "connections": {
     "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get PAGASA SWB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get OpenMeteo details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
       "main": [
         [
           {
@@ -476,17 +625,6 @@
         ]
       ]
     },
-    "Get Visayas PAGASA Forecast": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get OpenMeteo details": {
       "main": [
         [
@@ -494,6 +632,17 @@
             "node": "Merge",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -509,18 +658,18 @@
         ],
         [
           {
-            "node": "No Operation, do nothing",
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge": {
+    "Get Visayas PAGASA Forecast": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
@@ -575,23 +724,40 @@
       "main": [
         [
           {
-            "node": "Send a message",
+            "node": "Has Interaction Token? (Storm)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "When Executed by Another Workflow": {
+    "Has Interaction Token? (Storm)": {
       "main": [
         [
           {
-            "node": "Get PAGASA SWB",
+            "node": "Send Discord Follow-up (Storm)",
             "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
           {
-            "node": "Get OpenMeteo details",
+            "node": "Has Interaction Token? (Clear)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Interaction Token? (Clear)": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Follow-up (Clear)",
             "type": "main",
             "index": 0
           }
@@ -605,42 +771,8 @@
   "meta": {
     "templateCredsSetupCompleted": true
   },
-  "name": "Leyte Storm Watch",
+  "name": "Okarun - Leyte Storm Watch",
   "nodes": [
-    {
-      "parameters": {
-        "text": "=OPEN-METEO DATA:\nWind Gusts: {{ $node[\"Get OpenMeteo details\"].json.current.wind_gusts_10m }} km/h\nPrecipitation: {{ $node[\"Get OpenMeteo details\"].json.current.precipitation }} mm\n\nPAGASA REGIONAL FORECAST:\n{{ $node[\"Code in JavaScript\"].json.locations[0].location }}: {{ $node[\"Code in JavaScript\"].json.locations[0].forecast }}\nThunderstorm Alert: {{ $node[\"Code in JavaScript\"].json.alerts.thunderstorm }}\n\nGALE WARNING STATUS:\n{{ $node[\"Code in JavaScript1\"].json.status }}\nAffected Areas: {{ $node[\"Code in JavaScript1\"].json.affected_my_areas }}",
-        "attributes": {
-          "attributes": [
-            {
-              "name": "overall_risk",
-              "description": "Rate the travel risk as \"LOW\", \"MODERATE\", or \"HIGH\" based on wind > 40km/h or Gale Warnings."
-            },
-            {
-              "name": "boat_cancellation_likelihood",
-              "description": "Percentage chance (0-100%) that boats between Cebu and Naval will be cancelled."
-            },
-            {
-              "name": "message_summary",
-              "description": "Create a short, punchy 2-line update for WhatsApp. Use emojis like ⚠️ or 🚢. Mention Biliran specifically."
-            },
-            {
-              "name": "is_emergency",
-              "description": "Set to True only if a Gale Warning is active for Leyte/Biliran or Wind Gusts > 60km/h."
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
-      "typeVersion": 1.2,
-      "position": [
-        1680,
-        144
-      ],
-      "id": "c0b4ec88-2ac6-4a9f-a05c-589b0a2b0bda",
-      "name": "Information Extractor"
-    },
     {
       "parameters": {
         "rule": {
@@ -655,54 +787,72 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -144,
-        16
+        -704,
+        -256
       ],
-      "id": "8d031b42-6142-4963-907b-e73e57d98854",
+      "id": "71e249c8-a555-40b1-9e5f-d011c829f2ac",
       "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        -32
+      ],
+      "id": "4233be54-c459-4be1-962a-91847756249d",
+      "name": "When Executed by Another Workflow"
     },
     {
       "parameters": {
         "method": "POST",
         "url": "https://www.pagasa.dost.gov.ph/tropical-cyclone/severe-weather-bulletin",
-        "options": {}
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        176,
-        16
+        -384,
+        -256
       ],
-      "id": "596e3377-5178-4b86-852e-64747c370598",
+      "id": "85b4a48f-4c29-419c-9dfd-d90b2cbdff72",
       "name": "Get PAGASA SWB"
     },
     {
       "parameters": {
         "url": "https://api.open-meteo.com/v1/forecast?latitude=11.5622&longitude=124.3944&current=precipitation,wind_speed_10m,wind_gusts_10m&hourly=precipitation,wind_speed_10m,wind_gusts_10m&daily=wind_gusts_10m_max,precipitation_sum&timezone=Asia%2FManila&forecast_days=3",
-        "options": {}
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        176,
-        240
+        -384,
+        -32
       ],
-      "id": "65e4e966-d321-466d-b64f-2ce4e99ce2ad",
+      "id": "c3f3409c-c721-4141-a305-2f5a21964d51",
       "name": "Get OpenMeteo details"
     },
     {
       "parameters": {
-        "url": "https://www.pagasa.dost.gov.ph/regional-forecast/visprsd",
+        "mode": "combine",
+        "combineBy": "combineAll",
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
       "position": [
-        848,
-        144
+        -144,
+        -128
       ],
-      "id": "ca8c7961-a7f8-4112-9055-af1aa128e6ae",
-      "name": "Get Visayas PAGASA Forecast"
+      "id": "b546faad-82ad-4d21-9733-eaff733915e6",
+      "name": "Merge"
     },
     {
       "parameters": {
@@ -726,7 +876,7 @@
             {
               "id": "5d7823bf-7eec-4328-8f25-31d1322d4a23",
               "leftValue": "={{ $json.current.wind_gusts_10m }}",
-              "rightValue": "={{ 40\n}}",
+              "rightValue": 40,
               "operator": {
                 "type": "number",
                 "operation": "gt"
@@ -750,49 +900,37 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        624,
-        144
+        64,
+        -128
       ],
-      "id": "57993234-faa8-479c-81ba-449d87693f0d",
+      "id": "282a3d1e-35fe-458d-b376-2ac38cefccad",
       "name": "If"
     },
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        864,
-        384
-      ],
-      "id": "0f3eda83-8111-48f0-8482-e3376433efd4",
-      "name": "No Operation, do nothing"
-    },
-    {
       "parameters": {
-        "mode": "combine",
-        "combineBy": "combineAll",
+        "url": "https://www.pagasa.dost.gov.ph/regional-forecast/visprsd",
         "options": {}
       },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
-        416,
-        144
+        352,
+        -128
       ],
-      "id": "7ade3cbd-b890-4e75-b5c3-1c3861d382e5",
-      "name": "Merge"
+      "id": "00c19d48-9372-41e1-94ea-3694022f6950",
+      "name": "Get Visayas PAGASA Forecast"
     },
     {
       "parameters": {
-        "jsCode": "// Get the HTML content\nconst html = $input.first().json.data || $input.first().json.body || \"\";\n\n// We'll look for these specific keys in the HTML\nconst targets = [\n  { label: \"Cebu\", search: \"Cebu City\" },\n  { label: \"Naval\", search: \"Naval\" },\n  { label: \"Biliran\", search: \"Biliran\" }\n];\n\nconst results = targets.map(target => {\n  // This Regex looks for the city name and grabs everything until the next HTML tag or coordinate\n  // It handles the \"partly cloudy\" text seen in your screenshot.\n  const regex = new RegExp(`${target.search}[\\\\s\\\\S]{1,50}?<div[^>]*>([\\\\s\\\\S]{5,150}?)<\\\\/div>`, 'i');\n  const match = html.match(regex);\n  \n  let forecastText = match ? match[1].replace(/<[^>]*>?/gm, '').trim() : \"Clear Skies\"; \n  \n  // If the scrape fails but we see \"Clear Skies\" icons in the HTML, \n  // we default to a safe \"Fair Weather\" unless a warning is found below.\n  return {\n    location: target.label,\n    forecast: forecastText\n  };\n});\n\n// Capture the CRITICAL alerts for boat travel\nconst thunderstormAlert = html.match(/Thunderstorm (Watch|Information) #VISPRSD[\\s\\S]{1,500}?(within 12 hours|persist)/i);\nconst galeWarning = html.match(/Gale Warning[\\s\\S]{1,500}?(Rough to Very Rough)/i);\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      locations: results,\n      alerts: {\n        thunderstorm: thunderstormAlert ? thunderstormAlert[0].replace(/<[^>]*>?/gm, ' ').trim() : \"None\",\n        gale_warning: galeWarning ? \"ACTIVE GALE WARNING - Boats likely stopped\" : \"None\"\n      }\n    }\n  }\n];"
+        "jsCode": "// Get the HTML content\nconst html = $input.first().json.data || $input.first().json.body || \"\";\n\n// We'll look for these specific keys in the HTML\nconst targets = [\n  { label: \"Cebu\", search: \"Cebu City\" },\n  { label: \"Naval\", search: \"Naval\" },\n  { label: \"Biliran\", search: \"Biliran\" }\n];\n\nconst results = targets.map(target => {\n  const regex = new RegExp(`${target.search}[\\\\s\\\\S]{1,50}?<div[^>]*>([\\\\s\\\\S]{5,150}?)<\\\\/div>`, 'i');\n  const match = html.match(regex);\n  let forecastText = match ? match[1].replace(/<[^>]*>?/gm, '').trim() : \"Clear Skies\";\n  return { location: target.label, forecast: forecastText };\n});\n\nconst thunderstormAlert = html.match(/Thunderstorm (Watch|Information) #VISPRSD[\\s\\S]{1,500}?(within 12 hours|persist)/i);\nconst galeWarning = html.match(/Gale Warning[\\s\\S]{1,500}?(Rough to Very Rough)/i);\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      locations: results,\n      alerts: {\n        thunderstorm: thunderstormAlert ? thunderstormAlert[0].replace(/<[^>]*>?/gm, ' ').trim() : \"None\",\n        gale_warning: galeWarning ? \"ACTIVE GALE WARNING - Boats likely stopped\" : \"None\"\n      }\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1056,
-        144
+        592,
+        -128
       ],
-      "id": "de1d89df-a021-4794-993a-49b44d232e33",
+      "id": "6fcf4d55-ea62-4afe-8bbb-1a3c9f8077cc",
       "name": "Code in JavaScript"
     },
     {
@@ -803,24 +941,58 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1264,
-        144
+        816,
+        -128
       ],
-      "id": "c67ce15d-a729-480d-b252-e4c85d597e77",
+      "id": "082775d5-2cc5-4883-8073-df69eb7568c9",
       "name": "HTTP Request"
     },
     {
       "parameters": {
-        "jsCode": "const html = $input.first().json.data || $input.first().json.body || \"\";\n\n// 1. Check if the \"No Gale Warning\" text exists\nconst noWarningFound = html.includes(\"no Gale Warning Issued\") || html.includes(\"No active gale warning\");\n\n// 2. Define your \"Critical Zones\" for the Leyte move\nconst myZones = [\"Leyte\", \"Biliran\", \"Naval\", \"Carigara\", \"Ormoc\"];\n\n// 3. Search for any mention of your zones in the HTML\n// This acts as a fallback even if the parsing isn't perfect\nconst mentionedZones = myZones.filter(zone => \n  new RegExp(`\\\\b${zone}\\\\b`, 'i').test(html)\n);\n\n// 4. Determine the Boat Status\nlet boatStatus = \"PROBABLY OK\";\nlet alertLevel = \"Green\";\n\nif (!noWarningFound) {\n  boatStatus = \"WARNING ACTIVE - CHECK COAST GUARD\";\n  alertLevel = \"Yellow\";\n}\n\nif (mentionedZones.length > 0 && !noWarningFound) {\n  boatStatus = \"DANGER: LEYTE/BILIRAN AFFECTED - BOATS LIKELY STOPPED\";\n  alertLevel = \"Red\";\n}\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      is_gale_active: !noWarningFound,\n      affected_my_areas: mentionedZones,\n      status: boatStatus,\n      alert_color: alertLevel,\n      raw_text_summary: html.replace(/<[^>]*>?/gm, ' ').substring(0, 500) // First 500 chars of text\n    }\n  }\n];"
+        "jsCode": "const html = $input.first().json.data || $input.first().json.body || \"\";\n\nconst noWarningFound = html.includes(\"no Gale Warning Issued\") || html.includes(\"No active gale warning\");\nconst myZones = [\"Leyte\", \"Biliran\", \"Naval\", \"Carigara\", \"Ormoc\"];\nconst mentionedZones = myZones.filter(zone =>\n  new RegExp(`\\\\b${zone}\\\\b`, 'i').test(html)\n);\n\nlet boatStatus = \"PROBABLY OK\";\nlet alertLevel = \"Green\";\n\nif (!noWarningFound) {\n  boatStatus = \"WARNING ACTIVE - CHECK COAST GUARD\";\n  alertLevel = \"Yellow\";\n}\n\nif (mentionedZones.length > 0 && !noWarningFound) {\n  boatStatus = \"DANGER: LEYTE/BILIRAN AFFECTED - BOATS LIKELY STOPPED\";\n  alertLevel = \"Red\";\n}\n\nreturn [\n  {\n    json: {\n      timestamp: new Date().toLocaleString(\"en-PH\", { timeZone: \"Asia/Manila\" }),\n      is_gale_active: !noWarningFound,\n      affected_my_areas: mentionedZones,\n      status: boatStatus,\n      alert_color: alertLevel,\n      raw_text_summary: html.replace(/<[^>]*>?/gm, ' ').substring(0, 500)\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1472,
-        144
+        1072,
+        -128
       ],
-      "id": "1dafec25-ca37-4172-b116-3f76f73ed8c4",
+      "id": "5a8adb4e-d141-47e6-a972-cd19528b51a6",
       "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "text": "=OPEN-METEO DATA:\nWind Gusts: {{ $node[\"Get OpenMeteo details\"].json.current.wind_gusts_10m }} km/h\nPrecipitation: {{ $node[\"Get OpenMeteo details\"].json.current.precipitation }} mm\n\nPAGASA REGIONAL FORECAST:\n{{ $node[\"Code in JavaScript\"].json.locations[0].location }}: {{ $node[\"Code in JavaScript\"].json.locations[0].forecast }}\nThunderstorm Alert: {{ $node[\"Code in JavaScript\"].json.alerts.thunderstorm }}\n\nGALE WARNING STATUS:\n{{ $node[\"Code in JavaScript1\"].json.status }}\nAffected Areas: {{ $node[\"Code in JavaScript1\"].json.affected_my_areas }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "overall_risk",
+              "description": "Rate the travel risk as \"LOW\", \"MODERATE\", or \"HIGH\" based on wind > 40km/h or Gale Warnings."
+            },
+            {
+              "name": "boat_cancellation_likelihood",
+              "description": "Percentage chance (0-100%) that boats between Cebu and Naval will be cancelled."
+            },
+            {
+              "name": "message_summary",
+              "description": "Write a short 2-3 line Discord update in the voice of Okarun (Ken Takakura) from Dandadan — a nerdy, dramatic, slightly awkward teenage boy who is obsessed with the occult and aliens. He speaks with intense passion and over-the-top energy. Use phrases like 'My readings indicate...', 'This is no ordinary storm!', 'I have analyzed the data!', or 'According to my calculations...'. Reference aliens or supernatural phenomena humorously if conditions are bad. Use emojis like ⚠️ 👽 🌊 🚢 🔭. Mention Biliran and the Cebu-Naval route specifically."
+            },
+            {
+              "name": "is_emergency",
+              "description": "Set to True only if a Gale Warning is active for Leyte/Biliran or Wind Gusts > 60km/h."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1296,
+        -128
+      ],
+      "id": "478b1309-10d9-463d-a312-73fa523f6890",
+      "name": "Information Extractor"
     },
     {
       "parameters": {
@@ -830,10 +1002,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        1616,
-        352
+        1264,
+        80
       ],
-      "id": "c9eb7dfd-c23b-4c7e-8c8a-e365152a54d6",
+      "id": "8eac6ea0-9376-47a7-9301-220de8845257",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -844,56 +1016,171 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "guildId": {
-          "__rl": true,
-          "value": "1488068132198420564",
-          "mode": "list",
-          "cachedResultName": "bau & thea",
-          "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-storm-001",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
         },
-        "channelId": {
-          "__rl": true,
-          "value": "1488083586870677524",
-          "mode": "list",
-          "cachedResultName": "leyte-storm-watch",
-          "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1488083586870677524"
-        },
-        "content": "={{ $json.output.message_summary }}",
         "options": {}
       },
-      "type": "n8n-nodes-base.discord",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
-        2032,
-        144
+        1680,
+        -128
       ],
-      "id": "c3b0447e-dd01-4a10-95f2-e80bc1e8f2d2",
-      "name": "Send a message",
-      "webhookId": "7590072d-da53-42ee-8a05-81e0c94c058e",
-      "credentials": {
-        "discordBotApi": {
-          "id": "QXXgqWlMdAoLfJM5",
-          "name": "Okarun Discord Bot"
-        }
-      }
+      "id": "b48bb03e-f8f2-40eb-b2aa-d083e5b1c5f7",
+      "name": "Has Interaction Token? (Storm)"
     },
     {
       "parameters": {
-        "inputSource": "passthrough"
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Information Extractor').item.json.output.message_summary }) }}",
+        "options": {}
       },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
-        -144,
-        240
+        1952,
+        -128
       ],
-      "id": "8a2684d1-3cd3-4d29-aece-c1d752f04f0c",
-      "name": "When Executed by Another Workflow"
+      "id": "3725ce97-fa0d-4f27-9aa1-a122ef56588a",
+      "name": "Send Discord Follow-up (Storm)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db7e7f76-a976-4007-a39e-7f119f926e26",
+              "name": "message",
+              "value": "👽 My instruments detect NO paranormal storm activity over Biliran! 🚢 I have analyzed the PAGASA data and wind readings — the Cebu to Naval route appears to be safe for travel. ...Not that I was worried. I was simply being thorough.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        144
+      ],
+      "id": "bffc91fd-ce62-4649-ba73-c5dab6a5cfe4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-clear-001",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.body.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        576,
+        144
+      ],
+      "id": "97c176c0-a3a2-4410-8b4c-01d0a17ae4a4",
+      "name": "Has Interaction Token? (Clear)"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('When Executed by Another Workflow').item.json.body.application_id }}/{{ $('When Executed by Another Workflow').item.json.body.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Edit Fields').item.json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        816,
+        144
+      ],
+      "id": "abfb2b09-4deb-4cea-97ef-bcb228b90756",
+      "name": "Send Discord Follow-up (Clear)"
     }
   ],
   "origin": "n8n",
-  "pinData": {},
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2026-03-31T09:00:56.019+08:00",
+          "Readable date": "March 31st 2026, 9:00:56 am",
+          "Readable time": "9:00:56 am",
+          "Day of week": "Tuesday",
+          "Year": "2026",
+          "Month": "March",
+          "Day of month": "31",
+          "Hour": "09",
+          "Minute": "00",
+          "Second": "56",
+          "Timezone": "Asia/Manila (UTC+08:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "repo": {
     "owner": "sanashii",
     "name": "n8n-backups"
@@ -921,6 +1208,6 @@
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-03-30T09:06:14.593Z",
-  "versionId": "1006555e-6324-4177-b3d8-b7f821cc3074"
+  "updatedAt": "2026-03-31T05:05:33.112Z",
+  "versionId": "23aa8163-5bfe-4d12-a058-2bf6a7165a3b"
 }
