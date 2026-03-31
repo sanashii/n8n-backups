@@ -1,32 +1,15 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-03-30T22:42:06.000Z",
-    "createdAt": "2026-03-30T22:42:04.326Z",
-    "versionId": "45f1f86b-dba4-4d70-b594-61da3d657afc",
+    "updatedAt": "2026-03-31T09:44:24.000Z",
+    "createdAt": "2026-03-31T09:44:17.523Z",
+    "versionId": "0664c845-a8c4-48a6-b626-ff610305c341",
     "workflowId": "yGILp5JFqCO2FWU6ADcvn",
     "nodes": [
       {
         "parameters": {
-          "httpMethod": "POST",
-          "path": "okarun-interactions",
-          "responseMode": "responseNode",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.webhook",
-        "typeVersion": 2.1,
-        "position": [
-          -800,
-          -192
-        ],
-        "id": "06a9249e-9419-4b55-abe3-63cb29009155",
-        "name": "Webhook",
-        "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
-      },
-      {
-        "parameters": {
-          "respondWith": "json",
-          "responseBody": "={{ $json.toJsonString() }}",
+          "respondWith": "text",
+          "responseBody": "{\"type\": 5}",
           "options": {
             "responseCode": 200,
             "responseHeaders": {
@@ -42,11 +25,41 @@
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.5,
         "position": [
-          -160,
-          -64
+          704,
+          48
         ],
-        "id": "c9f7d2f3-2a24-4b9a-acae-a4b979e58139",
-        "name": "Respond to Webhook",
+        "id": "dae92dfd-923b-4cfb-80b7-8d1f3bca63cd",
+        "name": "Respond to Webhook — Deferred (type 5)"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "okarun-interactions",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          48,
+          48
+        ],
+        "id": "52d87898-eb2d-4012-a8a1-b476f2b93c46",
+        "name": "Webhook1",
+        "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
+      },
+      {
+        "parameters": {
+          "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '8d5db93566a037ca43d54f5c208904c24b0fd4dc3d672ed69bf73c593893c010';\nconst webhookData = $('Webhook1').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\n// Pass through full webhook data for slash commands (type 2)\nreturn [{ json: webhookData }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          256,
+          48
+        ],
+        "id": "acfa68c7-b8ef-4a7f-b6f3-5c1bb5cc1dc6",
+        "name": "Verification1",
         "disabled": true
       },
       {
@@ -76,25 +89,11 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          -400,
-          -192
+          448,
+          48
         ],
-        "id": "9d178a83-7965-4d6f-b04c-1d8fb5aec83b",
-        "name": "If"
-      },
-      {
-        "parameters": {
-          "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '8d5db93566a037ca43d54f5c208904c24b0fd4dc3d672ed69bf73c593893c010';\nconst webhookData = $('Webhook').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}"
-        },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          -592,
-          -192
-        ],
-        "id": "14a0c84f-5683-4916-bf5b-f0cf48dde2ba",
-        "name": "Verification",
-        "disabled": true
+        "id": "82cf04d7-707c-4d29-818a-ea1943957a3d",
+        "name": "If1"
       },
       {
         "parameters": {
@@ -111,12 +110,81 @@
                   "conditions": [
                     {
                       "leftValue": "={{ $json.body.data.name }}",
-                      "rightValue": "get_storm_watch",
+                      "rightValue": "biliran_storm_watch",
                       "operator": {
                         "type": "string",
                         "operation": "equals"
                       },
                       "id": "038cabd2-c4b3-4a8a-81a0-53c92f02ce35"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "db11649b-5f7d-4983-a620-f1eb5da197e6",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "conversion",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "fbba8ead-c8c9-423d-a788-d4905673242c",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "tax",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "56fd5629-fa8e-4cad-9cd9-17ed90f84861",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "contributions",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
                     }
                   ],
                   "combinator": "and"
@@ -129,11 +197,39 @@
         "type": "n8n-nodes-base.switch",
         "typeVersion": 3.4,
         "position": [
-          -160,
-          -288
+          912,
+          32
         ],
-        "id": "39bde042-b0b2-4759-8b25-9337564ac1fb",
-        "name": "Switch"
+        "id": "5e672887-969a-4ee1-97b6-1865ba0909d3",
+        "name": "Switch1"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "peXxGgCgpTpBHbrQ",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/peXxGgCgpTpBHbrQ",
+            "cachedResultName": "Okarun - USD to PHP"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1200,
+          -32
+        ],
+        "id": "0b7fdcda-4c26-498e-a8f6-a211e1f0d94b",
+        "name": "Call 'Okarun - USD to PHP'"
       },
       {
         "parameters": {
@@ -142,7 +238,36 @@
             "value": "re_Fucd_a-Lmv6Y4XBPus",
             "mode": "list",
             "cachedResultUrl": "/workflow/re_Fucd_a-Lmv6Y4XBPus",
-            "cachedResultName": "Leyte Storm Watch"
+            "cachedResultName": "Okarun - Leyte Storm Watch"
+          },
+          "workflowInputs": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "mode": "each",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1200,
+          -192
+        ],
+        "id": "775c57c2-9137-4a91-9501-558763d978b8",
+        "name": "Call 'Leyte Storm Watch'"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "LqsfA3umOrmWbwNK",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/LqsfA3umOrmWbwNK",
+            "cachedResultName": "Okarun - Tax Computation"
           },
           "workflowInputs": {
             "mappingMode": "defineBelow",
@@ -158,59 +283,108 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          64,
-          -288
+          1200,
+          144
         ],
-        "id": "0b6a197f-4972-448f-b894-89c0790968ea",
-        "name": "Call 'Leyte Storm Watch'"
+        "id": "e5f2a2a3-c409-4568-a364-8efe42016132",
+        "name": "Call 'Okarun - Tax Computation'"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "AXmBF4NCtLcmlQUP",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/AXmBF4NCtLcmlQUP",
+            "cachedResultName": "Okarun - Government Contributions"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {}
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1200,
+          320
+        ],
+        "id": "28c0d050-3a99-4f5d-8969-471df588b1d3",
+        "name": "Call 'Okarun - Government Contributions'"
       }
     ],
     "connections": {
-      "Webhook": {
+      "Respond to Webhook — Deferred (type 5)": {
         "main": [
           [
             {
-              "node": "Verification",
+              "node": "Switch1",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "If": {
+      "Webhook1": {
         "main": [
           [
             {
-              "node": "Switch",
+              "node": "Verification1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Verification1": {
+        "main": [
+          [
+            {
+              "node": "If1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook — Deferred (type 5)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch1": {
+        "main": [
+          [
+            {
+              "node": "Call 'Leyte Storm Watch'",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Respond to Webhook",
+              "node": "Call 'Okarun - USD to PHP'",
               "type": "main",
               "index": 0
             }
-          ]
-        ]
-      },
-      "Verification": {
-        "main": [
+          ],
           [
             {
-              "node": "If",
+              "node": "Call 'Okarun - Tax Computation'",
               "type": "main",
               "index": 0
             }
-          ]
-        ]
-      },
-      "Switch": {
-        "main": [
+          ],
           [
             {
-              "node": "Call 'Leyte Storm Watch'",
+              "node": "Call 'Okarun - Government Contributions'",
               "type": "main",
               "index": 0
             }
@@ -219,57 +393,82 @@
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version 45f1f86b",
+    "name": "Version 0664c845",
     "description": "",
     "autosaved": true
   },
-  "activeVersionId": "45f1f86b-dba4-4d70-b594-61da3d657afc",
+  "activeVersionId": "0664c845-a8c4-48a6-b626-ff610305c341",
   "connections": {
-    "Webhook": {
+    "Respond to Webhook — Deferred (type 5)": {
       "main": [
         [
           {
-            "node": "Verification",
+            "node": "Switch1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "Webhook1": {
       "main": [
         [
           {
-            "node": "Switch",
+            "node": "Verification1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verification1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook — Deferred (type 5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Call 'Leyte Storm Watch'",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Call 'Okarun - USD to PHP'",
             "type": "main",
             "index": 0
           }
-        ]
-      ]
-    },
-    "Verification": {
-      "main": [
+        ],
         [
           {
-            "node": "If",
+            "node": "Call 'Okarun - Tax Computation'",
             "type": "main",
             "index": 0
           }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
+        ],
         [
           {
-            "node": "Call 'Leyte Storm Watch'",
+            "node": "Call 'Okarun - Government Contributions'",
             "type": "main",
             "index": 0
           }
@@ -283,29 +482,12 @@
   "meta": {
     "templateCredsSetupCompleted": true
   },
-  "name": "Okarun Workflow",
+  "name": "[1] Okarun Main Workflow",
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "okarun-interactions",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -800,
-        -192
-      ],
-      "id": "06a9249e-9419-4b55-abe3-63cb29009155",
-      "name": "Webhook",
-      "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json.toJsonString() }}",
+        "respondWith": "text",
+        "responseBody": "{\"type\": 5}",
         "options": {
           "responseCode": 200,
           "responseHeaders": {
@@ -321,11 +503,41 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -160,
-        -64
+        704,
+        48
       ],
-      "id": "c9f7d2f3-2a24-4b9a-acae-a4b979e58139",
-      "name": "Respond to Webhook",
+      "id": "dae92dfd-923b-4cfb-80b7-8d1f3bca63cd",
+      "name": "Respond to Webhook — Deferred (type 5)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "okarun-interactions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        48
+      ],
+      "id": "52d87898-eb2d-4012-a8a1-b476f2b93c46",
+      "name": "Webhook1",
+      "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '8d5db93566a037ca43d54f5c208904c24b0fd4dc3d672ed69bf73c593893c010';\nconst webhookData = $('Webhook1').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\n// Pass through full webhook data for slash commands (type 2)\nreturn [{ json: webhookData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        48
+      ],
+      "id": "acfa68c7-b8ef-4a7f-b6f3-5c1bb5cc1dc6",
+      "name": "Verification1",
       "disabled": true
     },
     {
@@ -355,25 +567,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -400,
-        -192
+        448,
+        48
       ],
-      "id": "9d178a83-7965-4d6f-b04c-1d8fb5aec83b",
-      "name": "If"
-    },
-    {
-      "parameters": {
-        "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '8d5db93566a037ca43d54f5c208904c24b0fd4dc3d672ed69bf73c593893c010';\nconst webhookData = $('Webhook').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -592,
-        -192
-      ],
-      "id": "14a0c84f-5683-4916-bf5b-f0cf48dde2ba",
-      "name": "Verification",
-      "disabled": true
+      "id": "82cf04d7-707c-4d29-818a-ea1943957a3d",
+      "name": "If1"
     },
     {
       "parameters": {
@@ -390,12 +588,81 @@
                 "conditions": [
                   {
                     "leftValue": "={{ $json.body.data.name }}",
-                    "rightValue": "get_storm_watch",
+                    "rightValue": "biliran_storm_watch",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
                     },
                     "id": "038cabd2-c4b3-4a8a-81a0-53c92f02ce35"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "db11649b-5f7d-4983-a620-f1eb5da197e6",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "conversion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fbba8ead-c8c9-423d-a788-d4905673242c",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "tax",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "56fd5629-fa8e-4cad-9cd9-17ed90f84861",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "contributions",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
                   }
                 ],
                 "combinator": "and"
@@ -408,11 +675,39 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -160,
-        -288
+        912,
+        32
       ],
-      "id": "39bde042-b0b2-4759-8b25-9337564ac1fb",
-      "name": "Switch"
+      "id": "5e672887-969a-4ee1-97b6-1865ba0909d3",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "peXxGgCgpTpBHbrQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/peXxGgCgpTpBHbrQ",
+          "cachedResultName": "Okarun - USD to PHP"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        -32
+      ],
+      "id": "0b7fdcda-4c26-498e-a8f6-a211e1f0d94b",
+      "name": "Call 'Okarun - USD to PHP'"
     },
     {
       "parameters": {
@@ -421,7 +716,36 @@
           "value": "re_Fucd_a-Lmv6Y4XBPus",
           "mode": "list",
           "cachedResultUrl": "/workflow/re_Fucd_a-Lmv6Y4XBPus",
-          "cachedResultName": "Leyte Storm Watch"
+          "cachedResultName": "Okarun - Leyte Storm Watch"
+        },
+        "workflowInputs": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        -192
+      ],
+      "id": "775c57c2-9137-4a91-9501-558763d978b8",
+      "name": "Call 'Leyte Storm Watch'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "LqsfA3umOrmWbwNK",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/LqsfA3umOrmWbwNK",
+          "cachedResultName": "Okarun - Tax Computation"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -437,22 +761,46 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        64,
-        -288
+        1200,
+        144
       ],
-      "id": "0b6a197f-4972-448f-b894-89c0790968ea",
-      "name": "Call 'Leyte Storm Watch'"
+      "id": "e5f2a2a3-c409-4568-a364-8efe42016132",
+      "name": "Call 'Okarun - Tax Computation'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "AXmBF4NCtLcmlQUP",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/AXmBF4NCtLcmlQUP",
+          "cachedResultName": "Okarun - Government Contributions"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        320
+      ],
+      "id": "28c0d050-3a99-4f5d-8969-471df588b1d3",
+      "name": "Call 'Okarun - Government Contributions'"
     }
   ],
   "origin": "n8n",
   "pinData": {
-    "Webhook": [
+    "Webhook1": [
       {
         "json": {
           "headers": {
             "host": "n8n.srv1541552.hstgr.cloud",
             "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
-            "content-length": "1947",
+            "content-length": "1948",
             "content-type": "application/json",
             "x-forwarded-for": "35.237.4.214",
             "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
@@ -460,8 +808,8 @@
             "x-forwarded-proto": "https",
             "x-forwarded-server": "bed0e4eeabd6",
             "x-real-ip": "35.237.4.214",
-            "x-signature-ed25519": "c287e8cd1283096f2a530468b67b169b06096fe70540bcfa6523ad849c21954c8ea790fda0ff2b6e232d3f14ff278076dec9bd26059e5d4589da25aa93bae505",
-            "x-signature-timestamp": "1774910494",
+            "x-signature-ed25519": "603e6782128ae288eea4bab71750dbd403dfe05024336c8989a7606d1db056ca70e5cde7305f16277bfc6acfb5be6c6ac983babdae98f6cb88242f7d03110800",
+            "x-signature-timestamp": "1774933714",
             "accept-encoding": "gzip"
           },
           "params": {},
@@ -477,7 +825,7 @@
               "flags": 0,
               "guild_id": "1488068132198420564",
               "id": "1488083586870677524",
-              "last_message_id": "1488139580086681610",
+              "last_message_id": "1488404395266670602",
               "name": "leyte-storm-watch",
               "nsfw": false,
               "parent_id": "1488068134190448842",
@@ -490,13 +838,13 @@
             "channel_id": "1488083586870677524",
             "context": 0,
             "data": {
-              "id": "1488103531771596931",
-              "name": "get_storm_watch",
+              "id": "1488103431280525362",
+              "name": "conversion",
               "options": [
                 {
-                  "name": "location",
+                  "name": "base_currency",
                   "type": 3,
-                  "value": "test"
+                  "value": "10000"
                 }
               ],
               "type": 1
@@ -510,7 +858,7 @@
             },
             "guild_id": "1488068132198420564",
             "guild_locale": "en-US",
-            "id": "1488307226669219880",
+            "id": "1488404617611051018",
             "locale": "en-US",
             "member": {
               "avatar": null,
@@ -552,7 +900,7 @@
                 "username": "sanashii1"
               }
             },
-            "token": "aW50ZXJhY3Rpb246MTQ4ODMwNzIyNjY2OTIxOTg4MDpWbU5lZzNaWUxRazRaSGxSVWF3MFR5aXhrN3JOWVdGWE1PN0cxRG9QYlk2YzVTOGFFSk1WV2pzVFRSZUx4eG5uV1AzVkNRV0szaThaMXowb002eEYyblBaM3NjS3htVTZJa1MydVp3VDcyTGtzTWZSeUpvb2NnRDhaN1hQNThtMQ",
+            "token": "aW50ZXJhY3Rpb246MTQ4ODQwNDYxNzYxMTA1MTAxODpYemNZbkN4bEdtUTEzUFhCUDJibndubXg5NHZHTndhVkpPOHFGdnlVeUxGNjQ3SWpoT1ZWMHZ2dkZtT3RRS3lMQWRGVGIwUnJnb0h3TjBYekszV0UxdjZ5MHZyQzlnbE9IV25yV2lwTUlHczdQeEcxVkpjbVdTalVzSUJGSktVeQ",
             "type": 2,
             "version": 1
           },
@@ -586,6 +934,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-03-30T22:42:04.325Z",
-  "versionId": "45f1f86b-dba4-4d70-b594-61da3d657afc"
+  "updatedAt": "2026-03-31T09:44:17.523Z",
+  "versionId": "0664c845-a8c4-48a6-b626-ff610305c341"
 }
