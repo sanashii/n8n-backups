@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-04-04T13:10:54.000Z",
-    "createdAt": "2026-04-04T13:10:52.377Z",
-    "versionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f",
+    "updatedAt": "2026-04-04T14:05:51.000Z",
+    "createdAt": "2026-04-04T14:05:47.415Z",
+    "versionId": "411be2e5-63f4-4d94-8829-9937e987b6a6",
     "workflowId": "Zqmm80A6jceirq8o",
     "nodes": [
       {
@@ -13,24 +13,314 @@
         "type": "n8n-nodes-base.executeWorkflowTrigger",
         "typeVersion": 1.1,
         "position": [
-          640,
-          -272
+          1264,
+          -400
         ],
-        "id": "aeff964f-60a5-4822-b561-7be560e08a13",
+        "id": "6d29bcfc-bb84-4d02-bbda-9d8ce070a08e",
         "name": "When Executed by Another Workflow"
       },
       {
         "parameters": {
-          "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Google Sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
+          "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = Math.round(monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct));\nconst takeHomeGrad = Math.round(monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad));\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Gov't Contributions & Salary Budget sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    allowance,\n    takeHome8,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          912,
-          -272
+          1536,
+          -400
         ],
-        "id": "84ffd934-907e-452c-b891-96688fb99808",
+        "id": "eeace21e-b913-4ab9-b883-040270c32432",
         "name": "Compute Tax"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1107226864,
+            "mode": "list",
+            "cachedResultName": "Salary Budget",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "After budget deduction": "0",
+              "Item": "Non-Taxable Allowance",
+              "Budget": "={{ $('Compute Tax').item.json.allowance }}"
+            },
+            "matchingColumns": [
+              "Item"
+            ],
+            "schema": [
+              {
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Item",
+                "displayName": "Item",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Budget",
+                "displayName": "Budget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "After budget deduction",
+                "displayName": "After budget deduction",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status / Bank",
+                "displayName": "Status / Bank",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal / Notes",
+                "displayName": "Goal / Notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          2016,
+          -400
+        ],
+        "id": "3c09745b-7e03-4f91-9caf-6682c48bc01a",
+        "name": "Update Allowance in Budget",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1107226864,
+            "mode": "list",
+            "cachedResultName": "Salary Budget",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Budget": "={{ $json.Budget }}",
+              "After budget deduction": "={{ $json['After budget deduction'] }}",
+              "Item": "={{ $json.Item }}"
+            },
+            "matchingColumns": [
+              "Item"
+            ],
+            "schema": [
+              {
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Item",
+                "displayName": "Item",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Budget",
+                "displayName": "Budget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "After budget deduction",
+                "displayName": "After budget deduction",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status / Bank",
+                "displayName": "Status / Bank",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal / Notes",
+                "displayName": "Goal / Notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          2864,
+          -400
+        ],
+        "id": "13cea1c1-48e2-4c16-a954-d214e496c7b7",
+        "name": "Update Net Salary in Budget",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-logtax-001",
+                "leftValue": "={{ $('Compute Tax').item.json.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          3104,
+          -400
+        ],
+        "id": "2a84462f-6a32-4f5c-b7a6-e796b1093480",
+        "name": "Has Interaction Token?"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          3344,
+          -400
+        ],
+        "id": "da085f87-66f8-49eb-a3ad-001656009841",
+        "name": "Send Discord Follow-up"
       },
       {
         "parameters": {
@@ -44,21 +334,21 @@
           },
           "sheetName": {
             "__rl": true,
-            "value": 599689910,
+            "value": 1385622120,
             "mode": "list",
             "cachedResultName": "Government Contributions",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=599689910"
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1385622120"
           },
           "columns": {
             "mappingMode": "defineBelow",
             "value": {
               "date": "={{ $json.date }}",
+              "gross income": "={{ $json.grossIncome }}",
+              "pagibig regular savings": "={{ $json.pagibig }}",
               "philhealth": "={{ $json.philhealth }}",
               "sss": "={{ $json.sss }}",
-              "gross income": "={{ $json.grossIncome }}",
               "bir tax (8% flat)": "={{ $json.birTax8 }}",
-              "bir tax (graduated)": "={{ $json.birTaxGrad }}",
-              "pagibig regular savings": "={{ $json.pagibig }}"
+              "bir tax (graduated)": "={{ $json.birTaxGrad }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -87,8 +377,7 @@
                 "defaultMatch": false,
                 "display": true,
                 "type": "string",
-                "canBeUsedToMatch": true,
-                "removed": false
+                "canBeUsedToMatch": true
               },
               {
                 "id": "philhealth",
@@ -137,11 +426,11 @@
         "type": "n8n-nodes-base.googleSheets",
         "typeVersion": 4.7,
         "position": [
-          1152,
-          -272
+          1776,
+          -400
         ],
-        "id": "939a3612-f09d-40aa-8a62-ebd76df63fd1",
-        "name": "Log to Google Sheet",
+        "id": "ca2806db-ef6a-42c1-9dc3-2afd50498414",
+        "name": "Log to Government Contributions",
         "credentials": {
           "googleSheetsOAuth2Api": {
             "id": "wHMGmz6ZTMTf002f",
@@ -151,63 +440,361 @@
       },
       {
         "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "strict",
-              "version": 3
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1107226864,
+            "mode": "list",
+            "cachedResultName": "Salary Budget",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Item": "SSS",
+              "Budget": "={{ $('Compute Tax').item.json.sss }}"
             },
-            "conditions": [
+            "matchingColumns": [
+              "Item"
+            ],
+            "schema": [
               {
-                "id": "token-check-logtax-001",
-                "leftValue": "={{ $('Compute Tax').item.json.token }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "string",
-                  "operation": "notEmpty"
-                }
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Item",
+                "displayName": "Item",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Budget",
+                "displayName": "Budget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "After budget deduction",
+                "displayName": "After budget deduction",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status / Bank",
+                "displayName": "Status / Bank",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal / Notes",
+                "displayName": "Goal / Notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
               }
             ],
-            "combinator": "and"
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
           },
           "options": {}
         },
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
         "position": [
-          1392,
-          -272
+          2240,
+          -400
         ],
-        "id": "5dc61aab-dc27-401b-9bc8-1a665fc1488a",
-        "name": "Has Interaction Token?"
+        "id": "d4253470-05de-4a03-a0d3-7ea48aec56ed",
+        "name": "Update SSS in Salary Budget",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
       },
       {
         "parameters": {
-          "method": "PATCH",
-          "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "Content-Type",
-                "value": "application/json"
-              }
-            ]
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
           },
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+          "sheetName": {
+            "__rl": true,
+            "value": 1107226864,
+            "mode": "list",
+            "cachedResultName": "Salary Budget",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Item": "PhilHealth",
+              "Budget": "={{ $('Compute Tax').item.json.philhealth }}"
+            },
+            "matchingColumns": [
+              "Item"
+            ],
+            "schema": [
+              {
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Item",
+                "displayName": "Item",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Budget",
+                "displayName": "Budget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "After budget deduction",
+                "displayName": "After budget deduction",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status / Bank",
+                "displayName": "Status / Bank",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal / Notes",
+                "displayName": "Goal / Notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
           "options": {}
         },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.4,
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
         "position": [
-          1632,
-          -272
+          2432,
+          -400
         ],
-        "id": "b49e88e4-86b3-4d66-801e-902c2d58c7a1",
-        "name": "Send Discord Follow-up"
+        "id": "cf4f1242-9100-414c-a5c7-2c63a0e3a058",
+        "name": "Update PhilHealth in Salary Budget",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## Government Fees",
+          "height": 224,
+          "width": 576,
+          "color": 3
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          2192,
+          -448
+        ],
+        "id": "0ae3f0c8-b229-418d-a7b9-0eedd22e829a",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1107226864,
+            "mode": "list",
+            "cachedResultName": "Salary Budget",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Item": "Monthly Tax Set-Aside",
+              "Budget": "={{ $('Compute Tax').item.json.birTax8 }}"
+            },
+            "matchingColumns": [
+              "Item"
+            ],
+            "schema": [
+              {
+                "id": "Category",
+                "displayName": "Category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Item",
+                "displayName": "Item",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Budget",
+                "displayName": "Budget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "After budget deduction",
+                "displayName": "After budget deduction",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Status / Bank",
+                "displayName": "Status / Bank",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Goal / Notes",
+                "displayName": "Goal / Notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          2608,
+          -400
+        ],
+        "id": "215db536-ff44-4b10-9c27-86a2e5ee5628",
+        "name": "Update Tax Set Aside in Salary Budget",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
       }
     ],
     "connections": {
@@ -226,14 +813,25 @@
         "main": [
           [
             {
-              "node": "Log to Google Sheet",
+              "node": "Log to Government Contributions",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Log to Google Sheet": {
+      "Update Allowance in Budget": {
+        "main": [
+          [
+            {
+              "node": "Update SSS in Salary Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Net Salary in Budget": {
         "main": [
           [
             {
@@ -254,14 +852,58 @@
             }
           ]
         ]
+      },
+      "Log to Government Contributions": {
+        "main": [
+          [
+            {
+              "node": "Update Allowance in Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update SSS in Salary Budget": {
+        "main": [
+          [
+            {
+              "node": "Update PhilHealth in Salary Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update PhilHealth in Salary Budget": {
+        "main": [
+          [
+            {
+              "node": "Update Tax Set Aside in Salary Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Tax Set Aside in Salary Budget": {
+        "main": [
+          [
+            {
+              "node": "Update Net Salary in Budget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version ae4b8a76",
+    "name": "Version 411be2e5",
     "description": "",
     "autosaved": true
   },
-  "activeVersionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f",
+  "activeVersionId": "411be2e5-63f4-4d94-8829-9937e987b6a6",
   "connections": {
     "When Executed by Another Workflow": {
       "main": [
@@ -278,14 +920,25 @@
       "main": [
         [
           {
-            "node": "Log to Google Sheet",
+            "node": "Log to Government Contributions",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Log to Google Sheet": {
+    "Update Allowance in Budget": {
+      "main": [
+        [
+          {
+            "node": "Update SSS in Salary Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Net Salary in Budget": {
       "main": [
         [
           {
@@ -306,12 +959,58 @@
           }
         ]
       ]
+    },
+    "Log to Government Contributions": {
+      "main": [
+        [
+          {
+            "node": "Update Allowance in Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update SSS in Salary Budget": {
+      "main": [
+        [
+          {
+            "node": "Update PhilHealth in Salary Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update PhilHealth in Salary Budget": {
+      "main": [
+        [
+          {
+            "node": "Update Tax Set Aside in Salary Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tax Set Aside in Salary Budget": {
+      "main": [
+        [
+          {
+            "node": "Update Net Salary in Budget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2026-04-03T02:36:42.476Z",
   "id": "Zqmm80A6jceirq8o",
   "isArchived": false,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "name": "Okarun - Log Tax",
   "nodes": [
     {
@@ -321,24 +1020,314 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        640,
-        -272
+        1264,
+        -400
       ],
-      "id": "aeff964f-60a5-4822-b561-7be560e08a13",
+      "id": "6d29bcfc-bb84-4d02-bbda-9d8ce070a08e",
       "name": "When Executed by Another Workflow"
     },
     {
       "parameters": {
-        "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Google Sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
+        "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = Math.round(monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct));\nconst takeHomeGrad = Math.round(monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad));\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Gov't Contributions & Salary Budget sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    allowance,\n    takeHome8,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        912,
-        -272
+        1536,
+        -400
       ],
-      "id": "84ffd934-907e-452c-b891-96688fb99808",
+      "id": "eeace21e-b913-4ab9-b883-040270c32432",
       "name": "Compute Tax"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1107226864,
+          "mode": "list",
+          "cachedResultName": "Salary Budget",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "After budget deduction": "0",
+            "Item": "Non-Taxable Allowance",
+            "Budget": "={{ $('Compute Tax').item.json.allowance }}"
+          },
+          "matchingColumns": [
+            "Item"
+          ],
+          "schema": [
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "After budget deduction",
+              "displayName": "After budget deduction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status / Bank",
+              "displayName": "Status / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Goal / Notes",
+              "displayName": "Goal / Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2016,
+        -400
+      ],
+      "id": "3c09745b-7e03-4f91-9caf-6682c48bc01a",
+      "name": "Update Allowance in Budget",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1107226864,
+          "mode": "list",
+          "cachedResultName": "Salary Budget",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Budget": "={{ $json.Budget }}",
+            "After budget deduction": "={{ $json['After budget deduction'] }}",
+            "Item": "={{ $json.Item }}"
+          },
+          "matchingColumns": [
+            "Item"
+          ],
+          "schema": [
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "After budget deduction",
+              "displayName": "After budget deduction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status / Bank",
+              "displayName": "Status / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Goal / Notes",
+              "displayName": "Goal / Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2864,
+        -400
+      ],
+      "id": "13cea1c1-48e2-4c16-a954-d214e496c7b7",
+      "name": "Update Net Salary in Budget",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-logtax-001",
+              "leftValue": "={{ $('Compute Tax').item.json.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3104,
+        -400
+      ],
+      "id": "2a84462f-6a32-4f5c-b7a6-e796b1093480",
+      "name": "Has Interaction Token?"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3344,
+        -400
+      ],
+      "id": "da085f87-66f8-49eb-a3ad-001656009841",
+      "name": "Send Discord Follow-up"
     },
     {
       "parameters": {
@@ -352,21 +1341,21 @@
         },
         "sheetName": {
           "__rl": true,
-          "value": 599689910,
+          "value": 1385622120,
           "mode": "list",
           "cachedResultName": "Government Contributions",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=599689910"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1385622120"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "date": "={{ $json.date }}",
+            "gross income": "={{ $json.grossIncome }}",
+            "pagibig regular savings": "={{ $json.pagibig }}",
             "philhealth": "={{ $json.philhealth }}",
             "sss": "={{ $json.sss }}",
-            "gross income": "={{ $json.grossIncome }}",
             "bir tax (8% flat)": "={{ $json.birTax8 }}",
-            "bir tax (graduated)": "={{ $json.birTaxGrad }}",
-            "pagibig regular savings": "={{ $json.pagibig }}"
+            "bir tax (graduated)": "={{ $json.birTaxGrad }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -395,8 +1384,7 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
+              "canBeUsedToMatch": true
             },
             {
               "id": "philhealth",
@@ -445,11 +1433,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1152,
-        -272
+        1776,
+        -400
       ],
-      "id": "939a3612-f09d-40aa-8a62-ebd76df63fd1",
-      "name": "Log to Google Sheet",
+      "id": "ca2806db-ef6a-42c1-9dc3-2afd50498414",
+      "name": "Log to Government Contributions",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "wHMGmz6ZTMTf002f",
@@ -459,67 +1447,487 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1107226864,
+          "mode": "list",
+          "cachedResultName": "Salary Budget",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Item": "SSS",
+            "Budget": "={{ $('Compute Tax').item.json.sss }}"
           },
-          "conditions": [
+          "matchingColumns": [
+            "Item"
+          ],
+          "schema": [
             {
-              "id": "token-check-logtax-001",
-              "leftValue": "={{ $('Compute Tax').item.json.token }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "notEmpty"
-              }
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "After budget deduction",
+              "displayName": "After budget deduction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status / Bank",
+              "displayName": "Status / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Goal / Notes",
+              "displayName": "Goal / Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
             }
           ],
-          "combinator": "and"
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
-        1392,
-        -272
+        2240,
+        -400
       ],
-      "id": "5dc61aab-dc27-401b-9bc8-1a665fc1488a",
-      "name": "Has Interaction Token?"
+      "id": "d4253470-05de-4a03-a0d3-7ea48aec56ed",
+      "name": "Update SSS in Salary Budget",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "method": "PATCH",
-        "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+        "sheetName": {
+          "__rl": true,
+          "value": 1107226864,
+          "mode": "list",
+          "cachedResultName": "Salary Budget",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Item": "PhilHealth",
+            "Budget": "={{ $('Compute Tax').item.json.philhealth }}"
+          },
+          "matchingColumns": [
+            "Item"
+          ],
+          "schema": [
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "After budget deduction",
+              "displayName": "After budget deduction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status / Bank",
+              "displayName": "Status / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Goal / Notes",
+              "displayName": "Goal / Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
-        1632,
-        -272
+        2432,
+        -400
       ],
-      "id": "b49e88e4-86b3-4d66-801e-902c2d58c7a1",
-      "name": "Send Discord Follow-up"
+      "id": "cf4f1242-9100-414c-a5c7-2c63a0e3a058",
+      "name": "Update PhilHealth in Salary Budget",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Government Fees",
+        "height": 224,
+        "width": 576,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        -448
+      ],
+      "id": "0ae3f0c8-b229-418d-a7b9-0eedd22e829a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1107226864,
+          "mode": "list",
+          "cachedResultName": "Salary Budget",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=1107226864"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Item": "Monthly Tax Set-Aside",
+            "Budget": "={{ $('Compute Tax').item.json.birTax8 }}"
+          },
+          "matchingColumns": [
+            "Item"
+          ],
+          "schema": [
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "After budget deduction",
+              "displayName": "After budget deduction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status / Bank",
+              "displayName": "Status / Bank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Goal / Notes",
+              "displayName": "Goal / Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2608,
+        -400
+      ],
+      "id": "215db536-ff44-4b10-9c27-86a2e5ee5628",
+      "name": "Update Tax Set Aside in Salary Budget",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
   "origin": "n8n",
-  "pinData": {},
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv1541552.hstgr.cloud",
+            "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
+            "content-length": "2015",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.227.62.178",
+            "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "bed0e4eeabd6",
+            "x-real-ip": "35.227.62.178",
+            "x-signature-ed25519": "d01fa877cc9aae436a7f82d85ac5000b8d9da11595cdaefb5b7d10f61a5a724c4386160efa84ffa437412d1be56ff3f31953bb0db3e321f7a5743189f291b002",
+            "x-signature-timestamp": "1775310522",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "app_permissions": "18014398509481983",
+            "application_id": "1488071194669481994",
+            "attachment_size_limit": 10485760,
+            "authorizing_integration_owners": {
+              "0": "1488068132198420564"
+            },
+            "channel": {
+              "flags": 0,
+              "guild_id": "1488068132198420564",
+              "id": "1488074804912193626",
+              "last_message_id": "1489977322399465523",
+              "name": "tax-payable-computations",
+              "nsfw": false,
+              "parent_id": "1488074729813311559",
+              "permissions": "18014398509481983",
+              "position": 5,
+              "rate_limit_per_user": 0,
+              "topic": null,
+              "type": 0
+            },
+            "channel_id": "1488074804912193626",
+            "context": 0,
+            "data": {
+              "guild_id": "1488068132198420564",
+              "id": "1489454166828126391",
+              "name": "log_tax",
+              "options": [
+                {
+                  "name": "amount_in_php",
+                  "type": 3,
+                  "value": "94656"
+                }
+              ],
+              "type": 1
+            },
+            "entitlement_sku_ids": [],
+            "entitlements": [],
+            "guild": {
+              "features": [],
+              "id": "1488068132198420564",
+              "locale": "en-US"
+            },
+            "guild_id": "1488068132198420564",
+            "guild_locale": "en-US",
+            "id": "1489985067194253313",
+            "locale": "en-US",
+            "member": {
+              "avatar": null,
+              "banner": null,
+              "communication_disabled_until": null,
+              "deaf": false,
+              "flags": 0,
+              "joined_at": "2026-03-30T06:51:30.063000+00:00",
+              "mute": false,
+              "nick": null,
+              "pending": false,
+              "permissions": "18014398509481983",
+              "premium_since": null,
+              "roles": [
+                "1488850980459249684"
+              ],
+              "unusual_dm_activity_until": null,
+              "user": {
+                "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                "avatar_decoration_data": {
+                  "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                  "expires_at": null,
+                  "sku_id": "1481384635886862397"
+                },
+                "clan": null,
+                "collectibles": {
+                  "nameplate": {
+                    "asset": "nameplates/spider-man/1481388758455550114/",
+                    "expires_at": null,
+                    "label": "A glowing red and black spider resting on blue-white spider webs",
+                    "palette": "crimson",
+                    "sku_id": "1481388758455550114"
+                  }
+                },
+                "discriminator": "0",
+                "display_name_styles": null,
+                "global_name": "supremodude",
+                "id": "550449378205106196",
+                "primary_guild": null,
+                "public_flags": 64,
+                "username": "supremodude7"
+              }
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ4OTk4NTA2NzE5NDI1MzMxMzowSzI2ZVMwSmZoanNIWUlIb3lwR0gzZFlOaFY2SEJERmtnSXNRenNDRGNYZ2Z1eFdyVWxlWmIwRU5URHdQOERtZ25LNjRhVE03YkVNeTlWR0pHTmN3eWx0dUZwWkdpTWdNMDVXRVlYT2pyVVVSTk9LTTQ0a3VVNkxmWkI2N1BjWA",
+            "type": 2,
+            "version": 1
+          },
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/okarun-interactions",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "repo": {
     "owner": "sanashii",
     "name": "n8n-backups"
@@ -540,6 +1948,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-04-04T13:11:32.074Z",
-  "versionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f"
+  "updatedAt": "2026-04-04T14:05:47.414Z",
+  "versionId": "411be2e5-63f4-4d94-8829-9937e987b6a6"
 }
