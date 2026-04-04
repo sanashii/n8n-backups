@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-03-30T11:10:13.000Z",
-    "createdAt": "2026-03-30T11:07:44.597Z",
-    "versionId": "6fba5ef3-9a28-4a56-9fea-08c1c98e51fa",
+    "updatedAt": "2026-04-04T13:14:54.000Z",
+    "createdAt": "2026-04-04T13:14:36.320Z",
+    "versionId": "e2324489-7df4-4902-aca9-a10f69090416",
     "workflowId": "wFcDr5yrhqSjLPpu",
     "nodes": [
       {
@@ -322,6 +322,14 @@
             "mode": "id",
             "cachedResultUrl": "/workflow/wFcDr5yrhqSjLPpu"
           },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
           "mode": "each",
           "options": {}
         },
@@ -332,7 +340,8 @@
           2400,
           512
         ],
-        "typeVersion": 1.2
+        "typeVersion": 1.2,
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -1148,11 +1157,11 @@
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version 6fba5ef3",
+    "name": "Version e2324489",
     "description": "",
-    "autosaved": false
+    "autosaved": true
   },
-  "activeVersionId": "6fba5ef3-9a28-4a56-9fea-08c1c98e51fa",
+  "activeVersionId": "e2324489-7df4-4902-aca9-a10f69090416",
   "connections": {
     "If": {
       "main": [
