@@ -1,0 +1,545 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-04-04T13:10:54.000Z",
+    "createdAt": "2026-04-04T13:10:52.377Z",
+    "versionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f",
+    "workflowId": "Zqmm80A6jceirq8o",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          640,
+          -272
+        ],
+        "id": "aeff964f-60a5-4822-b561-7be560e08a13",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Google Sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          912,
+          -272
+        ],
+        "id": "84ffd934-907e-452c-b891-96688fb99808",
+        "name": "Compute Tax"
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+            "mode": "list",
+            "cachedResultName": "Cly's Finances Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 599689910,
+            "mode": "list",
+            "cachedResultName": "Government Contributions",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=599689910"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "date": "={{ $json.date }}",
+              "philhealth": "={{ $json.philhealth }}",
+              "sss": "={{ $json.sss }}",
+              "gross income": "={{ $json.grossIncome }}",
+              "bir tax (8% flat)": "={{ $json.birTax8 }}",
+              "bir tax (graduated)": "={{ $json.birTaxGrad }}",
+              "pagibig regular savings": "={{ $json.pagibig }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "date",
+                "displayName": "date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "gross income",
+                "displayName": "gross income",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "pagibig regular savings",
+                "displayName": "pagibig regular savings",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "philhealth",
+                "displayName": "philhealth",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "sss",
+                "displayName": "sss",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "bir tax (8% flat)",
+                "displayName": "bir tax (8% flat)",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "bir tax (graduated)",
+                "displayName": "bir tax (graduated)",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "useAppend": true
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          1152,
+          -272
+        ],
+        "id": "939a3612-f09d-40aa-8a62-ebd76df63fd1",
+        "name": "Log to Google Sheet",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "wHMGmz6ZTMTf002f",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-logtax-001",
+                "leftValue": "={{ $('Compute Tax').item.json.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1392,
+          -272
+        ],
+        "id": "5dc61aab-dc27-401b-9bc8-1a665fc1488a",
+        "name": "Has Interaction Token?"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1632,
+          -272
+        ],
+        "id": "b49e88e4-86b3-4d66-801e-902c2d58c7a1",
+        "name": "Send Discord Follow-up"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Compute Tax",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Compute Tax": {
+        "main": [
+          [
+            {
+              "node": "Log to Google Sheet",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Log to Google Sheet": {
+        "main": [
+          [
+            {
+              "node": "Has Interaction Token?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Interaction Token?": {
+        "main": [
+          [
+            {
+              "node": "Send Discord Follow-up",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version ae4b8a76",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f",
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Compute Tax",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Tax": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Has Interaction Token?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Interaction Token?": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-03T02:36:42.476Z",
+  "id": "Zqmm80A6jceirq8o",
+  "isArchived": false,
+  "meta": null,
+  "name": "Okarun - Log Tax",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        -272
+      ],
+      "id": "aeff964f-60a5-4822-b561-7be560e08a13",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const discordData = $('When Executed by Another Workflow').item.json;\n\n// Get total monthly income from Discord Input\nconst monthlyIncome = parseFloat(\n  discordData.body.data.options.find(o => o.name === 'amount_in_php')?.value\n);\n\nif (!monthlyIncome || isNaN(monthlyIncome)) {\n  throw new Error('Could not parse amount_in_php from Discord input.');\n}\n\n// Only ₱50,000 is declared as salary; the rest is allowance (not subject to contributions/tax)\nconst declaredSalary = 50000;\nconst allowance = Math.max(monthlyIncome - declaredSalary, 0);\n\n// SSS 2025/2026: 15% rate, MSC floor ₱5,000 ceiling ₱35,000 — based on declared salary\nconst msc = Math.min(Math.max(declaredSalary, 5000), 35000);\nconst sss = Math.round(msc * 0.15);\n\n// PhilHealth 2025/2026: 5% rate, floor ₱500 ceiling ₱5,000 — based on declared salary\nconst philhealth = Math.min(Math.max(declaredSalary * 0.05, 500), 5000);\n\n// Pag-IBIG: fixed ₱200 for income above ₱5,000\nconst pagibig = 200;\n\n// BIR Tax (TRAIN Law) — based on declared salary only\nconst annualDeclared = declaredSalary * 12;\n\n// 8% Flat Rate (₱250k deduction for self-employed/professionals)\nconst taxableAnnual8 = Math.max(annualDeclared - 250000, 0);\nconst monthlyTax8pct = (taxableAnnual8 * 0.08) / 12;\n\n// Graduated Rate (2023-2026 table)\nfunction graduatedTax(annual) {\n  if (annual <= 250000) return 0;\n  if (annual <= 400000) return (annual - 250000) * 0.15;\n  if (annual <= 800000) return 22500 + (annual - 400000) * 0.20;\n  if (annual <= 2000000) return 102500 + (annual - 800000) * 0.25;\n  if (annual <= 8000000) return 402500 + (annual - 2000000) * 0.30;\n  return 2202500 + (annual - 8000000) * 0.35;\n}\nconst monthlyTaxGrad = graduatedTax(annualDeclared) / 12;\n\n// Take-home: total income minus contributions (computed on declared salary)\nconst takeHome8 = monthlyIncome - (sss + philhealth + pagibig + monthlyTax8pct);\nconst takeHomeGrad = monthlyIncome - (sss + philhealth + pagibig + monthlyTaxGrad);\n\n// Date formatted as M/D/YY (matching existing sheet format)\nconst now = new Date();\nconst date = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;\n\nconst fmt = (n) => '₱' + Math.round(n).toLocaleString('en-PH');\n\nconst message = [\n  `👽 Logged and computed your government obligations, **${discordData.body.member.user.global_name}**! Entry recorded in the spreadsheet.`,\n  ``,\n  `💰 **Total Monthly Income:** ${fmt(monthlyIncome)}`,\n  `> 📝 Declared Salary: ${fmt(declaredSalary)} | Allowance: ${fmt(allowance)}`,\n  `> *(Contributions & BIR tax are computed on declared salary only)*`,\n  ``,\n  `**📋 Monthly Government Contributions (on ${fmt(declaredSalary)} salary):**`,\n  `> 🔵 SSS: ${fmt(sss)} *(15% rate, MSC: ${fmt(msc)})*`,\n  `> 🟢 PhilHealth: ${fmt(philhealth)} *(5% rate)*`,\n  `> 🟡 Pag-IBIG: ${fmt(pagibig)}`,\n  ``,\n  `**🧾 BIR Income Tax (monthly set-aside):**`,\n  `> 8% Flat Rate: **${fmt(monthlyTax8pct)}** ← *simpler, recommended*`,\n  `> Graduated Rate: ${fmt(monthlyTaxGrad)}`,\n  ``,\n  `**🏠 Estimated Take-Home (from total income):**`,\n  `> If 8% flat: **${fmt(takeHome8)}**`,\n  `> If graduated: **${fmt(takeHomeGrad)}**`,\n  ``,\n  `✅ *Saved to Google Sheets — ${date}*`\n].join('\\n');\n\nreturn [{\n  json: {\n    message,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    date,\n    grossIncome: monthlyIncome,\n    sss,\n    philhealth,\n    pagibig,\n    birTax8: Math.round(monthlyTax8pct),\n    birTaxGrad: Math.round(monthlyTaxGrad)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        -272
+      ],
+      "id": "84ffd934-907e-452c-b891-96688fb99808",
+      "name": "Compute Tax"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8",
+          "mode": "list",
+          "cachedResultName": "Cly's Finances Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 599689910,
+          "mode": "list",
+          "cachedResultName": "Government Contributions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iu4ZduhAW1IrkX-tCPp_GixMbrtagxbGrv38AZ-S4v8/edit#gid=599689910"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $json.date }}",
+            "philhealth": "={{ $json.philhealth }}",
+            "sss": "={{ $json.sss }}",
+            "gross income": "={{ $json.grossIncome }}",
+            "bir tax (8% flat)": "={{ $json.birTax8 }}",
+            "bir tax (graduated)": "={{ $json.birTaxGrad }}",
+            "pagibig regular savings": "={{ $json.pagibig }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gross income",
+              "displayName": "gross income",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "pagibig regular savings",
+              "displayName": "pagibig regular savings",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "philhealth",
+              "displayName": "philhealth",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sss",
+              "displayName": "sss",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bir tax (8% flat)",
+              "displayName": "bir tax (8% flat)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bir tax (graduated)",
+              "displayName": "bir tax (graduated)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1152,
+        -272
+      ],
+      "id": "939a3612-f09d-40aa-8a62-ebd76df63fd1",
+      "name": "Log to Google Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wHMGmz6ZTMTf002f",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-logtax-001",
+              "leftValue": "={{ $('Compute Tax').item.json.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1392,
+        -272
+      ],
+      "id": "5dc61aab-dc27-401b-9bc8-1a665fc1488a",
+      "name": "Has Interaction Token?"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('Compute Tax').item.json.applicationId }}/{{ $('Compute Tax').item.json.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Compute Tax').item.json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1632,
+        -272
+      ],
+      "id": "b49e88e4-86b3-4d66-801e-902c2d58c7a1",
+      "name": "Send Discord Follow-up"
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {},
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-03T02:36:42.479Z",
+      "createdAt": "2026-04-03T02:36:42.479Z",
+      "role": "workflow:owner",
+      "workflowId": "Zqmm80A6jceirq8o",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-04T13:11:32.074Z",
+  "versionId": "ae4b8a76-88af-4f83-bdfc-d9893bdfc84f"
+}
