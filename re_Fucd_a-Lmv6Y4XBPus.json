@@ -1202,12 +1202,12 @@
   "staticData": {
     "node:Schedule Trigger": {
       "recurrenceRules": [
-        6
+        21
       ]
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-03-31T05:05:33.112Z",
+  "updatedAt": "2026-04-04T13:11:43.069Z",
   "versionId": "23aa8163-5bfe-4d12-a058-2bf6a7165a3b"
 }
