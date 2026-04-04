@@ -1,0 +1,383 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-04-04T09:43:05.000Z",
+    "createdAt": "2026-04-04T09:43:03.001Z",
+    "versionId": "39f953c4-0619-4084-adab-8bb92de818a9",
+    "workflowId": "nOHgKq7QIohOO5fo",
+    "nodes": [
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "cond-macbook",
+                "leftValue": "={{ $json.title + ' ' + $json.content }}",
+                "rightValue": "MacBook",
+                "operator": {
+                  "type": "string",
+                  "operation": "contains"
+                }
+              },
+              {
+                "id": "cond-m5",
+                "leftValue": "={{ $json.title + ' ' + $json.content }}",
+                "rightValue": "M5 Pro",
+                "operator": {
+                  "type": "string",
+                  "operation": "contains"
+                }
+              },
+              {
+                "id": "cond-mac-pro",
+                "leftValue": "={{ $json.title + ' ' + $json.content }}",
+                "rightValue": "Mac Pro",
+                "operator": {
+                  "type": "string",
+                  "operation": "contains"
+                }
+              }
+            ],
+            "combinator": "or"
+          },
+          "options": {}
+        },
+        "id": "1f98e838-c0b7-4820-a060-944ff3b9b92e",
+        "name": "Mentions MacBook or M5?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -256,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "message",
+          "guildId": {
+            "__rl": true,
+            "value": "1488068132198420564",
+            "mode": "list",
+            "cachedResultName": "bau & thea",
+            "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+          },
+          "channelId": {
+            "__rl": true,
+            "value": "1489919910678364190",
+            "mode": "list",
+            "cachedResultName": "macbook-pro-notification",
+            "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1489919910678364190"
+          },
+          "content": "...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
+          "options": {}
+        },
+        "id": "a72d625a-9729-465a-b586-05c560edceed",
+        "name": "Discord — FB Post Alert",
+        "type": "n8n-nodes-base.discord",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "65a53e79-4889-4fee-a044-dbc82160ee14",
+        "credentials": {
+          "discordBotApi": {
+            "id": "QXXgqWlMdAoLfJM5",
+            "name": "Okarun Discord Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "pollTimes": {
+            "item": [
+              {
+                "mode": "everyMinute"
+              }
+            ]
+          },
+          "feedUrl": "https://rss.app/feeds/S56vghcy71zZvuz5.xml"
+        },
+        "id": "c29ef750-6e93-48d9-bc10-4a08d9f687c4",
+        "name": "RSS Feed Trigger - iStore",
+        "type": "n8n-nodes-base.rssFeedReadTrigger",
+        "typeVersion": 1,
+        "position": [
+          -528,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "pollTimes": {
+            "item": [
+              {
+                "mode": "everyMinute"
+              }
+            ]
+          },
+          "feedUrl": "https://rss.app/feeds/csPhPPByHNvGI7LY.xml"
+        },
+        "type": "n8n-nodes-base.rssFeedReadTrigger",
+        "typeVersion": 1,
+        "position": [
+          -528,
+          -112
+        ],
+        "id": "672397a5-2b20-4bff-aa5b-44b4a97e80a9",
+        "name": "RSS Feed Trigger - Power Mac Center"
+      }
+    ],
+    "connections": {
+      "Mentions MacBook or M5?": {
+        "main": [
+          [
+            {
+              "node": "Discord — FB Post Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS Feed Trigger - iStore": {
+        "main": [
+          [
+            {
+              "node": "Mentions MacBook or M5?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS Feed Trigger - Power Mac Center": {
+        "main": [
+          [
+            {
+              "node": "Mentions MacBook or M5?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version 39f953c4",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "39f953c4-0619-4084-adab-8bb92de818a9",
+  "connections": {
+    "Mentions MacBook or M5?": {
+      "main": [
+        [
+          {
+            "node": "Discord — FB Post Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger - iStore": {
+      "main": [
+        [
+          {
+            "node": "Mentions MacBook or M5?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Trigger - Power Mac Center": {
+      "main": [
+        [
+          {
+            "node": "Mentions MacBook or M5?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-04T09:34:20.117Z",
+  "id": "nOHgKq7QIohOO5fo",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Okarun — MacBook M5 Pro Facebook Watch",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-macbook",
+              "leftValue": "={{ $json.title + ' ' + $json.content }}",
+              "rightValue": "MacBook",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-m5",
+              "leftValue": "={{ $json.title + ' ' + $json.content }}",
+              "rightValue": "M5 Pro",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-mac-pro",
+              "leftValue": "={{ $json.title + ' ' + $json.content }}",
+              "rightValue": "Mac Pro",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "1f98e838-c0b7-4820-a060-944ff3b9b92e",
+      "name": "Mentions MacBook or M5?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1488068132198420564",
+          "mode": "list",
+          "cachedResultName": "bau & thea",
+          "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1489919910678364190",
+          "mode": "list",
+          "cachedResultName": "macbook-pro-notification",
+          "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1489919910678364190"
+        },
+        "content": "...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
+        "options": {}
+      },
+      "id": "a72d625a-9729-465a-b586-05c560edceed",
+      "name": "Discord — FB Post Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "65a53e79-4889-4fee-a044-dbc82160ee14",
+      "credentials": {
+        "discordBotApi": {
+          "id": "QXXgqWlMdAoLfJM5",
+          "name": "Okarun Discord Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "feedUrl": "https://rss.app/feeds/S56vghcy71zZvuz5.xml"
+      },
+      "id": "c29ef750-6e93-48d9-bc10-4a08d9f687c4",
+      "name": "RSS Feed Trigger - iStore",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "feedUrl": "https://rss.app/feeds/csPhPPByHNvGI7LY.xml"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -112
+      ],
+      "id": "672397a5-2b20-4bff-aa5b-44b4a97e80a9",
+      "name": "RSS Feed Trigger - Power Mac Center"
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {},
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-04T09:34:20.121Z",
+      "createdAt": "2026-04-04T09:34:20.121Z",
+      "role": "workflow:owner",
+      "workflowId": "nOHgKq7QIohOO5fo",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": {
+    "node:RSS Feed Trigger": {
+      "lastItemDate": "2026-03-30T11:00:06.000Z"
+    },
+    "node:RSS Feed Trigger - iStore": {
+      "lastItemDate": "2026-03-30T11:00:06.000Z"
+    },
+    "node:RSS Feed Trigger - Power Mac Center": {
+      "lastItemDate": "2026-04-02T08:00:23.000Z"
+    }
+  },
+  "tags": [],
+  "triggerCount": 2,
+  "updatedAt": "2026-04-04T13:11:15.762Z",
+  "versionId": "39f953c4-0619-4084-adab-8bb92de818a9"
+}
