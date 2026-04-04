@@ -1,0 +1,662 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-04-01T12:12:24.000Z",
+    "createdAt": "2026-04-01T12:12:23.071Z",
+    "versionId": "e44cfc27-ef03-41a9-abb4-db8a733419d1",
+    "workflowId": "Up4KGrrHkSQtIQCZ",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -160,
+          64
+        ],
+        "id": "048f825f-2148-425d-971c-981a79599663",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "const discordData = $input.item.json;\n\nconst ingredients = discordData.body.data.options.find(o => o.name === 'ingredients')?.value || '';\n\nif (!ingredients.trim()) {\n  throw new Error('No ingredients provided.');\n}\n\nreturn [{\n  json: {\n    ingredients,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    userName: discordData.body.member?.user?.global_name ||\n              discordData.body.user?.global_name ||\n              'you',\n    userId: discordData.body.member?.user?.id ||\n            discordData.body.user?.id\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          64
+        ],
+        "id": "678e04e4-fc66-4511-ae47-2d9561a6470e",
+        "name": "Extract Ingredients"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://openrouter.ai/api/v1/chat/completions",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer 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"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "HTTP-Referer",
+                "value": "https://n8n.srv1541552.hstgr.cloud"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"model\": \"google/gemini-2.0-flash-exp:free\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are Momo Ayase from the anime Dandadan. You are a cheerful, warm, and caring high school girl who happens to have spiritual powers — though right now you're channeling your grandmother's legendary cooking wisdom instead. You love helping people cook something delicious out of whatever they have on hand. You speak casually and with genuine excitement, occasionally referencing your grandmother's advice or good food omens. You never speak in a cold or robotic way.\\n\\nWhen given a list of ingredients, generate EXACTLY 2 recipe ideas. For each recipe output:\\n- A fun recipe name\\n- A short 1-sentence hype line (in Momo's voice)\\n- Ingredients needed (only from what was provided, you can note 1-2 common pantry staples like salt/oil)\\n- Numbered prep steps (keep it to 5-7 steps, concise)\\n\\nFormat your response EXACTLY like this, with no extra text before or after:\\n\\nRECIPE 1: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\\n\\nRECIPE 2: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Ingredients I have: {{ $json.ingredients }}\"\n    }\n  ],\n  \"max_tokens\": 800\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          320,
+          -192
+        ],
+        "id": "5730c307-3daa-438b-877c-3fdd4c3236e0",
+        "name": "Ask Gemini for Recipes",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const recipes = $input.item.json.text || 'Hmm, my spiritual senses are fuzzy right now... try again in a bit!';\nconst { token, applicationId, userName, userId, ingredients } = $('Extract Ingredients').item.json;\n\nconst mention = userId ? `<@${userId}>` : userName;\n\nconst message = [\n  `🌸 Okay okay okay, let me think— ${mention}! With **${ingredients}**, my grandmother's spirit is already whispering ideas to me!`,\n  ``,\n  recipes,\n  ``,\n  `✨ *Both recipes approved by the spirits! Let me know how it turns out~*`\n].join('\\n');\n\nreturn [{ json: { message, token, applicationId } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          576,
+          64
+        ],
+        "id": "a81f3bc3-1abd-401a-9006-14aadb84d8ee",
+        "name": "Format Message"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "token-check-recipe-001",
+                "leftValue": "={{ $json.token }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          800,
+          64
+        ],
+        "id": "45610423-70ba-4018-917a-f21f154e6f08",
+        "name": "Has Interaction Token?"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $json.applicationId }}/{{ $json.token }}/messages/@original",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1040,
+          64
+        ],
+        "id": "6e5ca7cb-eafa-4ab2-9251-8fa22c92518e",
+        "name": "Send Discord Follow-up"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Ingredients I have: {{ $json.ingredients }}",
+          "messages": {
+            "messageValues": [
+              {
+                "type": "AIMessagePromptTemplate",
+                "message": "=You are Momo Ayase from the anime Dandadan. You are a cheerful, warm, and caring high school girl who happens to have spiritual powers — though right now you're channeling your grandmother's legendary cooking wisdom instead. You love helping people cook something delicious out of whatever they have on hand. You speak casually and with genuine excitement, occasionally referencing your grandmother's advice or good food omens. You never speak in a cold or robotic way.\\n\\nWhen given a list of ingredients, generate EXACTLY 2 recipe ideas. For each recipe output:\\n- A fun recipe name\\n- A short 1-sentence hype line (in Momo's voice)\\n- Ingredients needed (only from what was provided, you can note 1-2 common pantry staples like salt/oil)\\n- Numbered prep steps (keep it to 5-7 steps, concise)\\n\\nFormat your response EXACTLY like this, with no extra text before or after:\\n\\nRECIPE 1: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\\n\\nRECIPE 2: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n..."
+              }
+            ]
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.9,
+        "position": [
+          256,
+          64
+        ],
+        "id": "6d9d0349-53e3-4f74-8ef0-fbd4927b3793",
+        "name": "Basic LLM Chain"
+      },
+      {
+        "parameters": {
+          "model": "google/gemini-2.0-flash-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          208,
+          256
+        ],
+        "id": "0d59d53c-97b9-434b-abf7-4aef60883398",
+        "name": "OpenRouter Chat Model",
+        "credentials": {
+          "openRouterApi": {
+            "id": "g0Uby2vRiyVUwoAp",
+            "name": "OpenRouter API Key"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Extract Ingredients",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Ingredients": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Message": {
+        "main": [
+          [
+            {
+              "node": "Has Interaction Token?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Interaction Token?": {
+        "main": [
+          [
+            {
+              "node": "Send Discord Follow-up",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain": {
+        "main": [
+          [
+            {
+              "node": "Format Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version e44cfc27",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "e44cfc27-ef03-41a9-abb4-db8a733419d1",
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Extract Ingredients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Ingredients": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Has Interaction Token?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Interaction Token?": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-01T11:43:55.666Z",
+  "id": "Up4KGrrHkSQtIQCZ",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Momo - Recipe Builder",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        64
+      ],
+      "id": "048f825f-2148-425d-971c-981a79599663",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const discordData = $input.item.json;\n\nconst ingredients = discordData.body.data.options.find(o => o.name === 'ingredients')?.value || '';\n\nif (!ingredients.trim()) {\n  throw new Error('No ingredients provided.');\n}\n\nreturn [{\n  json: {\n    ingredients,\n    token: discordData.body.token,\n    applicationId: discordData.body.application_id,\n    userName: discordData.body.member?.user?.global_name ||\n              discordData.body.user?.global_name ||\n              'you',\n    userId: discordData.body.member?.user?.id ||\n            discordData.body.user?.id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        64
+      ],
+      "id": "678e04e4-fc66-4511-ae47-2d9561a6470e",
+      "name": "Extract Ingredients"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://n8n.srv1541552.hstgr.cloud"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemini-2.0-flash-exp:free\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are Momo Ayase from the anime Dandadan. You are a cheerful, warm, and caring high school girl who happens to have spiritual powers — though right now you're channeling your grandmother's legendary cooking wisdom instead. You love helping people cook something delicious out of whatever they have on hand. You speak casually and with genuine excitement, occasionally referencing your grandmother's advice or good food omens. You never speak in a cold or robotic way.\\n\\nWhen given a list of ingredients, generate EXACTLY 2 recipe ideas. For each recipe output:\\n- A fun recipe name\\n- A short 1-sentence hype line (in Momo's voice)\\n- Ingredients needed (only from what was provided, you can note 1-2 common pantry staples like salt/oil)\\n- Numbered prep steps (keep it to 5-7 steps, concise)\\n\\nFormat your response EXACTLY like this, with no extra text before or after:\\n\\nRECIPE 1: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\\n\\nRECIPE 2: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Ingredients I have: {{ $json.ingredients }}\"\n    }\n  ],\n  \"max_tokens\": 800\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        320,
+        -192
+      ],
+      "id": "5730c307-3daa-438b-877c-3fdd4c3236e0",
+      "name": "Ask Gemini for Recipes",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const recipes = $input.item.json.text || 'Hmm, my spiritual senses are fuzzy right now... try again in a bit!';\nconst { token, applicationId, userName, userId, ingredients } = $('Extract Ingredients').item.json;\n\nconst mention = userId ? `<@${userId}>` : userName;\n\nconst message = [\n  `🌸 Okay okay okay, let me think— ${mention}! With **${ingredients}**, my grandmother's spirit is already whispering ideas to me!`,\n  ``,\n  recipes,\n  ``,\n  `✨ *Both recipes approved by the spirits! Let me know how it turns out~*`\n].join('\\n');\n\nreturn [{ json: { message, token, applicationId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        64
+      ],
+      "id": "a81f3bc3-1abd-401a-9006-14aadb84d8ee",
+      "name": "Format Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "token-check-recipe-001",
+              "leftValue": "={{ $json.token }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        64
+      ],
+      "id": "45610423-70ba-4018-917a-f21f154e6f08",
+      "name": "Has Interaction Token?"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $json.applicationId }}/{{ $json.token }}/messages/@original",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        64
+      ],
+      "id": "6e5ca7cb-eafa-4ab2-9251-8fa22c92518e",
+      "name": "Send Discord Follow-up"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ingredients I have: {{ $json.ingredients }}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=You are Momo Ayase from the anime Dandadan. You are a cheerful, warm, and caring high school girl who happens to have spiritual powers — though right now you're channeling your grandmother's legendary cooking wisdom instead. You love helping people cook something delicious out of whatever they have on hand. You speak casually and with genuine excitement, occasionally referencing your grandmother's advice or good food omens. You never speak in a cold or robotic way.\\n\\nWhen given a list of ingredients, generate EXACTLY 2 recipe ideas. For each recipe output:\\n- A fun recipe name\\n- A short 1-sentence hype line (in Momo's voice)\\n- Ingredients needed (only from what was provided, you can note 1-2 common pantry staples like salt/oil)\\n- Numbered prep steps (keep it to 5-7 steps, concise)\\n\\nFormat your response EXACTLY like this, with no extra text before or after:\\n\\nRECIPE 1: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n...\\n\\nRECIPE 2: [Recipe Name]\\n[Hype line]\\n**Ingredients:** [comma separated list]\\n**Steps:**\\n1. [step]\\n2. [step]\\n..."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        256,
+        64
+      ],
+      "id": "6d9d0349-53e3-4f74-8ef0-fbd4927b3793",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        256
+      ],
+      "id": "0d59d53c-97b9-434b-abf7-4aef60883398",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "g0Uby2vRiyVUwoAp",
+          "name": "OpenRouter API Key"
+        }
+      }
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv1541552.hstgr.cloud",
+            "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
+            "content-length": "1973",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.237.4.214",
+            "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "bed0e4eeabd6",
+            "x-real-ip": "35.237.4.214",
+            "x-signature-ed25519": "a6212b01fb998f7abc23b49faa5de5d0d0b910ada0d6bad50b07513355ecdc5b6e0a859f5b9a150193ddbf58a3a81424416d77d67857cb001d9b97890213170c",
+            "x-signature-timestamp": "1775045359",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "app_permissions": "9007199254740991",
+            "application_id": "1488862741564358756",
+            "attachment_size_limit": 10485760,
+            "authorizing_integration_owners": {
+              "0": "1488068132198420564"
+            },
+            "channel": {
+              "flags": 0,
+              "guild_id": "1488068132198420564",
+              "id": "1488872033151619082",
+              "last_message_id": "1488872249451741277",
+              "name": "recipes",
+              "nsfw": false,
+              "parent_id": "1488074891298209923",
+              "permissions": "9007199254740991",
+              "position": 12,
+              "rate_limit_per_user": 0,
+              "topic": null,
+              "type": 0
+            },
+            "channel_id": "1488872033151619082",
+            "context": 0,
+            "data": {
+              "id": "1488871156260798636",
+              "name": "recipe_builder",
+              "options": [
+                {
+                  "name": "ingredients",
+                  "type": 3,
+                  "value": "eggs, tuna"
+                }
+              ],
+              "type": 1
+            },
+            "entitlement_sku_ids": [],
+            "entitlements": [],
+            "guild": {
+              "features": [],
+              "id": "1488068132198420564",
+              "locale": "en-US"
+            },
+            "guild_id": "1488068132198420564",
+            "guild_locale": "en-US",
+            "id": "1488872892979744768",
+            "locale": "en-US",
+            "member": {
+              "avatar": null,
+              "banner": null,
+              "communication_disabled_until": null,
+              "deaf": false,
+              "flags": 0,
+              "joined_at": "2026-03-30T06:51:30.063000+00:00",
+              "mute": false,
+              "nick": null,
+              "pending": false,
+              "permissions": "9007199254740991",
+              "premium_since": null,
+              "roles": [
+                "1488850980459249684"
+              ],
+              "unusual_dm_activity_until": null,
+              "user": {
+                "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                "avatar_decoration_data": {
+                  "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                  "expires_at": null,
+                  "sku_id": "1481384635886862397"
+                },
+                "clan": null,
+                "collectibles": {
+                  "nameplate": {
+                    "asset": "nameplates/spider-man/1481388758455550114/",
+                    "expires_at": null,
+                    "label": "A glowing red and black spider resting on blue-white spider webs",
+                    "palette": "crimson",
+                    "sku_id": "1481388758455550114"
+                  }
+                },
+                "discriminator": "0",
+                "display_name_styles": null,
+                "global_name": "supremodude",
+                "id": "550449378205106196",
+                "primary_guild": null,
+                "public_flags": 64,
+                "username": "supremodude7"
+              }
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ4ODg3Mjg5Mjk3OTc0NDc2ODpNS2JuaVI5blIxSFdCQnNVRnJXS2djaTNTN3d0RTNkNnVZTU1Mc3RHNjVDT1FEbG5QenNkVEczV2dYemI1eVJvOE5sQVRDQzJxYUpSVGMwV204aHBLQWJsOE0wV1lUSzBkMXpRd29ZTDE2Q3hCakN3T0l1OUd1SFBvTUw4b1lwMg",
+            "type": 2,
+            "version": 1
+          },
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/momo-interactions",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-01T11:43:55.670Z",
+      "createdAt": "2026-04-01T11:43:55.670Z",
+      "role": "workflow:owner",
+      "workflowId": "Up4KGrrHkSQtIQCZ",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-01T12:12:23.070Z",
+  "versionId": "e44cfc27-ef03-41a9-abb4-db8a733419d1"
+}
