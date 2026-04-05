@@ -1,11 +1,179 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-04-01T11:44:26.000Z",
-    "createdAt": "2026-04-01T11:44:25.246Z",
-    "versionId": "0effbaac-d0f5-4b19-91cf-1960acd2e83c",
+    "updatedAt": "2026-04-05T10:46:10.000Z",
+    "createdAt": "2026-04-05T10:46:09.319Z",
+    "versionId": "ea4b1f02-4af0-4bbc-897b-d6847bec6a3a",
     "workflowId": "VA62APiZhB64ExPk",
     "nodes": [
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "rt-log",
+                      "leftValue": "={{ $json.body.type }}",
+                      "rightValue": 2,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      }
+                    },
+                    {
+                      "id": "rt-log2",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "log-receipt",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "log-receipt"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "rt-comp",
+                      "leftValue": "={{ $json.body.type }}",
+                      "rightValue": 3,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      }
+                    },
+                    {
+                      "id": "rt-comp2",
+                      "leftValue": "={{ $json.body.data.custom_id }}",
+                      "rightValue": "select_record_to_update",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "select-component"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "99576c5e-a90d-4e3f-b736-19a670154d7c",
+                      "leftValue": "={{ $json.body.type }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "number",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "none"
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -32,
+          304
+        ],
+        "id": "a9213ec9-5e06-4bcc-b669-585906dcb558",
+        "name": "Switch: Response Type"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{\n  json: {\n    type: 9,\n    data: {\n      title: \"Log Scholarship Receipt\",\n      custom_id: \"log_receipt_modal\",\n      components: [\n        {type:1, components:[{type:4, custom_id:\"date_received\",    label:\"Date Received\",       style:1, placeholder:\"e.g. March 31, 2026\",       required:true}]},\n        {type:1, components:[{type:4, custom_id:\"received_via\",     label:\"Received Via\",        style:1, placeholder:\"e.g. Bank Transfer: PNB\",   required:true}]},\n        {type:1, components:[{type:4, custom_id:\"amount_received\",  label:\"Amount Received (PHP)\",style:1, placeholder:\"e.g. 48685.00\",             required:true}]},\n        {type:1, components:[{type:4, custom_id:\"particulars\",      label:\"Particulars\",         style:1, placeholder:\"e.g. Tuition Fee (Midterms)\",required:true}]}\n      ]\n    }\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          160
+        ],
+        "id": "681f1a62-e03c-4140-869c-08cf71ec1fc8",
+        "name": "Code: Log Receipt Modal"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($input.first().json) }}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          512,
+          160
+        ],
+        "id": "d46a0919-df48-4542-aef2-4208be549c37",
+        "name": "Respond: Log Receipt Modal"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body;\nconst recordId = body.data.values[0];\n\nreturn [{\n  json: {\n    type: 9,\n    data: {\n      title: \"Log Payment Details\",\n      custom_id: `update_payment_modal:${recordId}`,\n      components: [\n        {type:1, components:[{type:4, custom_id:\"amount_paid\", label:\"Amount Paid (PHP)\", style:1, placeholder:\"e.g. 48685.00\",      required:true}]},\n        {type:1, components:[{type:4, custom_id:\"date_paid\",   label:\"Date Paid\",         style:1, placeholder:\"e.g. April 5, 2026\", required:true}]}\n      ]\n    }\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          384
+        ],
+        "id": "ed1e3e48-d229-4f99-8204-e7a4c4281268",
+        "name": "Code: Update Payment Modal"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($input.first().json) }}",
+          "options": {
+            "responseCode": 200
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          512,
+          384
+        ],
+        "id": "7c86c32d-ed33-463f-936a-d601b9839434",
+        "name": "Respond: Update Payment Modal"
+      },
       {
         "parameters": {
           "respondWith": "text",
@@ -25,24 +193,24 @@
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.5,
         "position": [
-          -656,
-          320
+          -496,
+          800
         ],
-        "id": "d2bb8cd5-b865-4404-b406-1910a43b436e",
-        "name": "Respond to Webhook — Deferred (type 5)"
+        "id": "3f43afde-2666-4b87-be3d-871fad1f36f3",
+        "name": "Respond to Webhook — Deferred (type 5)1"
       },
       {
         "parameters": {
-          "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '051f49a7773374dcb252d1ad2af3a2c913581e5916265a70d58c57e598a6e652';\nconst webhookData = $('Webhook').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\n// Pass through full webhook data for slash commands (type 2)\nreturn [{ json: webhookData }];"
+          "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '051f49a7773374dcb252d1ad2af3a2c913581e5916265a70d58c57e598a6e652';\nconst webhookData = $('Webhook1').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\nreturn [{ json: webhookData }];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          -1312,
-          608
+          -1296,
+          704
         ],
-        "id": "59a61d76-96ae-4035-81a4-c6b9265da535",
-        "name": "Verification1",
+        "id": "9b3997a8-e37e-45dd-a6b8-61b7fac14bd0",
+        "name": "Verification",
         "disabled": true
       },
       {
@@ -72,11 +240,11 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          -928,
-          336
+          -288,
+          304
         ],
-        "id": "dc2d0cc2-af7d-408a-ad73-d71016bc622b",
-        "name": "If1"
+        "id": "c281f556-63a7-47b9-8cfb-1664ae621d64",
+        "name": "If2"
       },
       {
         "parameters": {
@@ -84,14 +252,14 @@
             "responseCode": 401
           }
         },
-        "name": "Failed",
+        "name": "Failed1",
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1,
         "position": [
-          -896,
-          592
+          -880,
+          688
         ],
-        "id": "ef05cf3e-5ab5-4ba3-a575-f6f66e34f865",
+        "id": "e963f9f1-f232-4846-a046-2e61f2f04894",
         "disabled": true
       },
       {
@@ -113,11 +281,11 @@
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.5,
         "position": [
-          -896,
-          736
+          -880,
+          832
         ],
-        "id": "4a4cfed4-bb5b-4172-ba4b-7925bcf986b0",
-        "name": "Respond to Webhook",
+        "id": "c77cf201-b912-4978-8e8e-d3e891284dc5",
+        "name": "Respond to Webhook1",
         "disabled": true
       },
       {
@@ -147,11 +315,11 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          -1136,
-          608
+          -1120,
+          704
         ],
-        "id": "b65735a8-d10f-4fa8-8bb1-cafc65ec1f8e",
-        "name": "If",
+        "id": "d2264f6c-4f2e-413e-b00d-a14653be6ded",
+        "name": "If3",
         "disabled": true
       },
       {
@@ -164,11 +332,11 @@
         "type": "n8n-nodes-base.webhook",
         "typeVersion": 2.1,
         "position": [
-          -1152,
-          336
+          -512,
+          304
         ],
-        "id": "6470b89a-be05-414d-b312-8d9caedc239f",
-        "name": "Webhook",
+        "id": "bce65dd4-e1a5-45b7-8678-301debb561d8",
+        "name": "Webhook1",
         "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
       },
       {
@@ -180,11 +348,11 @@
         "type": "n8n-nodes-base.stickyNote",
         "typeVersion": 1,
         "position": [
-          -1408,
-          544
+          -1376,
+          640
         ],
-        "id": "ef9fae93-4e54-4471-af9c-c9e6be23a784",
-        "name": "Sticky Note"
+        "id": "e993dea4-ac5a-4c3e-964c-9ea851bba00c",
+        "name": "Sticky Note1"
       },
       {
         "parameters": {
@@ -211,6 +379,94 @@
                   ],
                   "combinator": "and"
                 }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "sch-sw-upl",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "upload-receipt",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "sch-sw-log",
+                      "leftValue": "={{ $json.body.data.custom_id }}",
+                      "rightValue": "log_receipt_modal",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "sch-sw-upd",
+                      "leftValue": "={{ $json.body.data.name }}",
+                      "rightValue": "update-payment",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "sch-sw-updm",
+                      "leftValue": "={{ $json.body.data.custom_id }}",
+                      "rightValue": "update_payment_modal:",
+                      "operator": {
+                        "type": "string",
+                        "operation": "startsWith"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
               }
             ]
           },
@@ -219,11 +475,11 @@
         "type": "n8n-nodes-base.switch",
         "typeVersion": 3.4,
         "position": [
-          -448,
-          320
+          -272,
+          736
         ],
-        "id": "893a4b97-33c1-468b-a385-5d8a2f95df2a",
-        "name": "Switch1"
+        "id": "55fa7a27-792e-46d3-89de-37472e253252",
+        "name": "Switch"
       },
       {
         "parameters": {
@@ -248,81 +504,252 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.3,
         "position": [
-          -240,
-          320
+          -16,
+          560
         ],
-        "id": "b730618c-3342-4494-92df-612b39ab7b9e",
-        "name": "Call 'Momo - Recipe Builder'"
+        "id": "74cfcbd4-c48a-43e2-9135-935b12b7d40c",
+        "name": "Call 'Momo - Recipe Builder'1"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "Q2aH5FYTkA2CygOE",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/Q2aH5FYTkA2CygOE",
+            "cachedResultName": "[2] Momo - Scholarship: Update Payment"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "body": "={{ $json.body }}",
+              "headers": "={{ $json.headers }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "mode": "each",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          -16,
+          1152
+        ],
+        "id": "555a6b06-16cb-4e48-8490-dcb0c00ab7ef",
+        "name": "Call '[2] Momo - Scholarship: Update Payment'"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "1GNqBIA7rU3ViyCr",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/1GNqBIA7rU3ViyCr",
+            "cachedResultName": "[2] Momo - Scholarship: Upload Receipt"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "body": "={{ $json.body }}",
+              "headers": "={{ $json.headers }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "mode": "each",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          -16,
+          752
+        ],
+        "id": "4b7fbbda-8b11-4646-86eb-15dd6a2496ad",
+        "name": "Call '[2] Momo - Scholarship: Upload Receipt'"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "FnDMvPkxv4WaCZ6C",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/FnDMvPkxv4WaCZ6C",
+            "cachedResultName": "Momo - Scholarship: Log Payment Received"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "body": "={{ $json.body }}",
+              "headers": "={{ $json.headers }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "mode": "each",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          -16,
+          944
+        ],
+        "id": "ef11d1ab-7736-4847-933c-0bb2a0e694c5",
+        "name": "Call 'Momo - Scholarship: Log Payment Received'"
       }
     ],
     "connections": {
-      "Respond to Webhook — Deferred (type 5)": {
+      "Switch: Response Type": {
         "main": [
           [
             {
-              "node": "Switch1",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Verification1": {
-        "main": [
-          [
-            {
-              "node": "If",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "If1": {
-        "main": [
-          [
-            {
-              "node": "Respond to Webhook — Deferred (type 5)",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "If": {
-        "main": [
-          [
-            {
-              "node": "Failed",
+              "node": "Code: Log Receipt Modal",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Respond to Webhook",
+              "node": "Code: Update Payment Modal",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to Webhook — Deferred (type 5)1",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Webhook": {
+      "Code: Log Receipt Modal": {
         "main": [
           [
             {
-              "node": "If1",
+              "node": "Respond: Log Receipt Modal",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Switch1": {
+      "Code: Update Payment Modal": {
         "main": [
           [
             {
-              "node": "Call 'Momo - Recipe Builder'",
+              "node": "Respond: Update Payment Modal",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook — Deferred (type 5)1": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Verification": {
+        "main": [
+          [
+            {
+              "node": "If3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If2": {
+        "main": [
+          [
+            {
+              "node": "Switch: Response Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If3": {
+        "main": [
+          [
+            {
+              "node": "Failed1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to Webhook1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook1": {
+        "main": [
+          [
+            {
+              "node": "If2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Call 'Momo - Recipe Builder'1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Call '[2] Momo - Scholarship: Upload Receipt'",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Call 'Momo - Scholarship: Log Payment Received'",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Call '[2] Momo - Scholarship: Update Payment'",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Call '[2] Momo - Scholarship: Update Payment'",
               "type": "main",
               "index": 0
             }
@@ -331,79 +758,154 @@
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version 0effbaac",
+    "name": "Version ea4b1f02",
     "description": "",
-    "autosaved": true
+    "autosaved": false
   },
-  "activeVersionId": "0effbaac-d0f5-4b19-91cf-1960acd2e83c",
+  "activeVersionId": "ea4b1f02-4af0-4bbc-897b-d6847bec6a3a",
   "connections": {
-    "Respond to Webhook — Deferred (type 5)": {
+    "Switch: Response Type": {
       "main": [
         [
           {
-            "node": "Switch1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Verification1": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook — Deferred (type 5)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Failed",
+            "node": "Code: Log Receipt Modal",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Code: Update Payment Modal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook — Deferred (type 5)1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Webhook": {
+    "Code: Log Receipt Modal": {
       "main": [
         [
           {
-            "node": "If1",
+            "node": "Respond: Log Receipt Modal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch1": {
+    "Code: Update Payment Modal": {
       "main": [
         [
           {
-            "node": "Call 'Momo - Recipe Builder'",
+            "node": "Respond: Update Payment Modal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook — Deferred (type 5)1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verification": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Switch: Response Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Failed1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Call 'Momo - Recipe Builder'1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call '[2] Momo - Scholarship: Upload Receipt'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Momo - Scholarship: Log Payment Received'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call '[2] Momo - Scholarship: Update Payment'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call '[2] Momo - Scholarship: Update Payment'",
             "type": "main",
             "index": 0
           }
@@ -414,9 +916,179 @@
   "createdAt": "2026-04-01T11:33:35.421Z",
   "id": "VA62APiZhB64ExPk",
   "isArchived": false,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "name": "[1] Momo - Main Workflow",
   "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "rt-log",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rt-log2",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "log-receipt",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "log-receipt"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "rt-comp",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rt-comp2",
+                    "leftValue": "={{ $json.body.data.custom_id }}",
+                    "rightValue": "select_record_to_update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "select-component"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "99576c5e-a90d-4e3f-b736-19a670154d7c",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "number",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        304
+      ],
+      "id": "a9213ec9-5e06-4bcc-b669-585906dcb558",
+      "name": "Switch: Response Type"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    type: 9,\n    data: {\n      title: \"Log Scholarship Receipt\",\n      custom_id: \"log_receipt_modal\",\n      components: [\n        {type:1, components:[{type:4, custom_id:\"date_received\",    label:\"Date Received\",       style:1, placeholder:\"e.g. March 31, 2026\",       required:true}]},\n        {type:1, components:[{type:4, custom_id:\"received_via\",     label:\"Received Via\",        style:1, placeholder:\"e.g. Bank Transfer: PNB\",   required:true}]},\n        {type:1, components:[{type:4, custom_id:\"amount_received\",  label:\"Amount Received (PHP)\",style:1, placeholder:\"e.g. 48685.00\",             required:true}]},\n        {type:1, components:[{type:4, custom_id:\"particulars\",      label:\"Particulars\",         style:1, placeholder:\"e.g. Tuition Fee (Midterms)\",required:true}]}\n      ]\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        160
+      ],
+      "id": "681f1a62-e03c-4140-869c-08cf71ec1fc8",
+      "name": "Code: Log Receipt Modal"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.first().json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        160
+      ],
+      "id": "d46a0919-df48-4542-aef2-4208be549c37",
+      "name": "Respond: Log Receipt Modal"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst recordId = body.data.values[0];\n\nreturn [{\n  json: {\n    type: 9,\n    data: {\n      title: \"Log Payment Details\",\n      custom_id: `update_payment_modal:${recordId}`,\n      components: [\n        {type:1, components:[{type:4, custom_id:\"amount_paid\", label:\"Amount Paid (PHP)\", style:1, placeholder:\"e.g. 48685.00\",      required:true}]},\n        {type:1, components:[{type:4, custom_id:\"date_paid\",   label:\"Date Paid\",         style:1, placeholder:\"e.g. April 5, 2026\", required:true}]}\n      ]\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        384
+      ],
+      "id": "ed1e3e48-d229-4f99-8204-e7a4c4281268",
+      "name": "Code: Update Payment Modal"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($input.first().json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        384
+      ],
+      "id": "7c86c32d-ed33-463f-936a-d601b9839434",
+      "name": "Respond: Update Payment Modal"
+    },
     {
       "parameters": {
         "respondWith": "text",
@@ -436,24 +1108,24 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -656,
-        320
+        -496,
+        800
       ],
-      "id": "d2bb8cd5-b865-4404-b406-1910a43b436e",
-      "name": "Respond to Webhook — Deferred (type 5)"
+      "id": "3f43afde-2666-4b87-be3d-871fad1f36f3",
+      "name": "Respond to Webhook — Deferred (type 5)1"
     },
     {
       "parameters": {
-        "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '051f49a7773374dcb252d1ad2af3a2c913581e5916265a70d58c57e598a6e652';\nconst webhookData = $('Webhook').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\n// Pass through full webhook data for slash commands (type 2)\nreturn [{ json: webhookData }];"
+        "jsCode": "const nacl = require(\"tweetnacl\");\nconst { Buffer } = require('buffer');\n\nconst PUBLIC_KEY = '051f49a7773374dcb252d1ad2af3a2c913581e5916265a70d58c57e598a6e652';\nconst webhookData = $('Webhook1').first().json;\n\nconst signature = webhookData.headers[\"x-signature-ed25519\"];\nconst timestamp  = webhookData.headers[\"x-signature-timestamp\"];\nconst body = JSON.stringify(webhookData.body);\n\nconst isVerified = nacl.sign.detached.verify(\n  Buffer.from(timestamp + body),\n  Buffer.from(signature, \"hex\"),\n  Buffer.from(PUBLIC_KEY, \"hex\")\n);\n\nif (!isVerified) {\n  return [{ json: { type: 0 } }];\n}\n\nif (webhookData.body.type === 1) {\n  return [{ json: { type: 1 } }];\n}\n\nreturn [{ json: webhookData }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1312,
-        608
+        -1296,
+        704
       ],
-      "id": "59a61d76-96ae-4035-81a4-c6b9265da535",
-      "name": "Verification1",
+      "id": "9b3997a8-e37e-45dd-a6b8-61b7fac14bd0",
+      "name": "Verification",
       "disabled": true
     },
     {
@@ -483,11 +1155,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -928,
-        336
+        -288,
+        304
       ],
-      "id": "dc2d0cc2-af7d-408a-ad73-d71016bc622b",
-      "name": "If1"
+      "id": "c281f556-63a7-47b9-8cfb-1664ae621d64",
+      "name": "If2"
     },
     {
       "parameters": {
@@ -495,14 +1167,14 @@
           "responseCode": 401
         }
       },
-      "name": "Failed",
+      "name": "Failed1",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -896,
-        592
+        -880,
+        688
       ],
-      "id": "ef05cf3e-5ab5-4ba3-a575-f6f66e34f865",
+      "id": "e963f9f1-f232-4846-a046-2e61f2f04894",
       "disabled": true
     },
     {
@@ -524,11 +1196,11 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -896,
-        736
+        -880,
+        832
       ],
-      "id": "4a4cfed4-bb5b-4172-ba4b-7925bcf986b0",
-      "name": "Respond to Webhook",
+      "id": "c77cf201-b912-4978-8e8e-d3e891284dc5",
+      "name": "Respond to Webhook1",
       "disabled": true
     },
     {
@@ -558,11 +1230,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1136,
-        608
+        -1120,
+        704
       ],
-      "id": "b65735a8-d10f-4fa8-8bb1-cafc65ec1f8e",
-      "name": "If",
+      "id": "d2264f6c-4f2e-413e-b00d-a14653be6ded",
+      "name": "If3",
       "disabled": true
     },
     {
@@ -575,11 +1247,11 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1152,
-        336
+        -512,
+        304
       ],
-      "id": "6470b89a-be05-414d-b312-8d9caedc239f",
-      "name": "Webhook",
+      "id": "bce65dd4-e1a5-45b7-8678-301debb561d8",
+      "name": "Webhook1",
       "webhookId": "d533133ff-a619-4311-a633-2623b4e311de"
     },
     {
@@ -591,11 +1263,11 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1408,
-        544
+        -1376,
+        640
       ],
-      "id": "ef9fae93-4e54-4471-af9c-c9e6be23a784",
-      "name": "Sticky Note"
+      "id": "e993dea4-ac5a-4c3e-964c-9ea851bba00c",
+      "name": "Sticky Note1"
     },
     {
       "parameters": {
@@ -622,6 +1294,94 @@
                 ],
                 "combinator": "and"
               }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "sch-sw-upl",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "upload-receipt",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "sch-sw-log",
+                    "leftValue": "={{ $json.body.data.custom_id }}",
+                    "rightValue": "log_receipt_modal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "sch-sw-upd",
+                    "leftValue": "={{ $json.body.data.name }}",
+                    "rightValue": "update-payment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "sch-sw-updm",
+                    "leftValue": "={{ $json.body.data.custom_id }}",
+                    "rightValue": "update_payment_modal:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
             }
           ]
         },
@@ -630,11 +1390,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -448,
-        320
+        -272,
+        736
       ],
-      "id": "893a4b97-33c1-468b-a385-5d8a2f95df2a",
-      "name": "Switch1"
+      "id": "55fa7a27-792e-46d3-89de-37472e253252",
+      "name": "Switch"
     },
     {
       "parameters": {
@@ -659,22 +1419,118 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        -240,
-        320
+        -16,
+        560
       ],
-      "id": "b730618c-3342-4494-92df-612b39ab7b9e",
-      "name": "Call 'Momo - Recipe Builder'"
+      "id": "74cfcbd4-c48a-43e2-9135-935b12b7d40c",
+      "name": "Call 'Momo - Recipe Builder'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Q2aH5FYTkA2CygOE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Q2aH5FYTkA2CygOE",
+          "cachedResultName": "[2] Momo - Scholarship: Update Payment"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body": "={{ $json.body }}",
+            "headers": "={{ $json.headers }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        1152
+      ],
+      "id": "555a6b06-16cb-4e48-8490-dcb0c00ab7ef",
+      "name": "Call '[2] Momo - Scholarship: Update Payment'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1GNqBIA7rU3ViyCr",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1GNqBIA7rU3ViyCr",
+          "cachedResultName": "[2] Momo - Scholarship: Upload Receipt"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body": "={{ $json.body }}",
+            "headers": "={{ $json.headers }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        752
+      ],
+      "id": "4b7fbbda-8b11-4646-86eb-15dd6a2496ad",
+      "name": "Call '[2] Momo - Scholarship: Upload Receipt'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "FnDMvPkxv4WaCZ6C",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/FnDMvPkxv4WaCZ6C",
+          "cachedResultName": "Momo - Scholarship: Log Payment Received"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body": "={{ $json.body }}",
+            "headers": "={{ $json.headers }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        944
+      ],
+      "id": "ef11d1ab-7736-4847-933c-0bb2a0e694c5",
+      "name": "Call 'Momo - Scholarship: Log Payment Received'"
     }
   ],
   "origin": "n8n",
   "pinData": {
-    "Webhook": [
+    "Webhook1": [
       {
         "json": {
           "headers": {
             "host": "n8n.srv1541552.hstgr.cloud",
             "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
-            "content-length": "1948",
+            "content-length": "4588",
             "content-type": "application/json",
             "x-forwarded-for": "35.237.4.214",
             "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
@@ -682,15 +1538,15 @@
             "x-forwarded-proto": "https",
             "x-forwarded-server": "bed0e4eeabd6",
             "x-real-ip": "35.237.4.214",
-            "x-signature-ed25519": "603e6782128ae288eea4bab71750dbd403dfe05024336c8989a7606d1db056ca70e5cde7305f16277bfc6acfb5be6c6ac983babdae98f6cb88242f7d03110800",
-            "x-signature-timestamp": "1774933714",
+            "x-signature-ed25519": "10700134dc8bd6de4ed605cbe54fc1085b1e1ab99869bf226dc675411d850d0df1b255b6b6c72a00869c997da1144febaf0499ef9b5b9086abbdc553fa50b705",
+            "x-signature-timestamp": "1775385714",
             "accept-encoding": "gzip"
           },
           "params": {},
           "query": {},
           "body": {
-            "app_permissions": "9007199254740991",
-            "application_id": "1488071194669481994",
+            "app_permissions": "18014398509481983",
+            "application_id": "1488862741564358756",
             "attachment_size_limit": 10485760,
             "authorizing_integration_owners": {
               "0": "1488068132198420564"
@@ -698,30 +1554,48 @@
             "channel": {
               "flags": 0,
               "guild_id": "1488068132198420564",
-              "id": "1488083586870677524",
-              "last_message_id": "1488404395266670602",
-              "name": "leyte-storm-watch",
+              "id": "1488860733096853595",
+              "last_message_id": "1490300145529655397",
+              "last_pin_timestamp": "2026-04-01T11:22:07.807000+00:00",
+              "name": "scholarship-updates",
               "nsfw": false,
-              "parent_id": "1488068134190448842",
-              "permissions": "9007199254740991",
-              "position": 6,
+              "parent_id": "1488074891298209923",
+              "permissions": "18014398509481983",
+              "position": 11,
               "rate_limit_per_user": 0,
               "topic": null,
               "type": 0
             },
-            "channel_id": "1488083586870677524",
+            "channel_id": "1488860733096853595",
             "context": 0,
             "data": {
-              "id": "1488103431280525362",
-              "name": "conversion",
-              "options": [
+              "components": [
                 {
-                  "name": "base_currency",
-                  "type": 3,
-                  "value": "10000"
+                  "components": [
+                    {
+                      "custom_id": "amount_paid",
+                      "id": 2,
+                      "type": 4,
+                      "value": "30,000"
+                    }
+                  ],
+                  "id": 1,
+                  "type": 1
+                },
+                {
+                  "components": [
+                    {
+                      "custom_id": "date_paid",
+                      "id": 4,
+                      "type": 4,
+                      "value": "April 5 2026"
+                    }
+                  ],
+                  "id": 3,
+                  "type": 1
                 }
               ],
-              "type": 1
+              "custom_id": "update_payment_modal:recDtGNEVXCCxYWpQ"
             },
             "entitlement_sku_ids": [],
             "entitlements": [],
@@ -732,7 +1606,7 @@
             },
             "guild_id": "1488068132198420564",
             "guild_locale": "en-US",
-            "id": "1488404617611051018",
+            "id": "1490300442859798679",
             "locale": "en-US",
             "member": {
               "avatar": null,
@@ -744,9 +1618,11 @@
               "mute": false,
               "nick": null,
               "pending": false,
-              "permissions": "9007199254740991",
+              "permissions": "18014398509481983",
               "premium_since": null,
-              "roles": [],
+              "roles": [
+                "1488850980459249684"
+              ],
               "unusual_dm_activity_until": null,
               "user": {
                 "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
@@ -767,19 +1643,140 @@
                 },
                 "discriminator": "0",
                 "display_name_styles": null,
-                "global_name": "sanashii",
+                "global_name": "supremodude",
                 "id": "550449378205106196",
                 "primary_guild": null,
                 "public_flags": 64,
-                "username": "sanashii1"
+                "username": "supremodude7"
               }
             },
-            "token": "aW50ZXJhY3Rpb246MTQ4ODQwNDYxNzYxMTA1MTAxODpYemNZbkN4bEdtUTEzUFhCUDJibndubXg5NHZHTndhVkpPOHFGdnlVeUxGNjQ3SWpoT1ZWMHZ2dkZtT3RRS3lMQWRGVGIwUnJnb0h3TjBYekszV0UxdjZ5MHZyQzlnbE9IV25yV2lwTUlHczdQeEcxVkpjbVdTalVzSUJGSktVeQ",
-            "type": 2,
+            "message": {
+              "application_id": "1488862741564358756",
+              "attachments": [],
+              "author": {
+                "avatar": "03f45f6f1269cd2cc789722e3736597b",
+                "avatar_decoration_data": null,
+                "bot": true,
+                "clan": null,
+                "collectibles": null,
+                "discriminator": "8169",
+                "display_name_styles": null,
+                "global_name": null,
+                "id": "1488862741564358756",
+                "primary_guild": null,
+                "public_flags": 524288,
+                "username": "Momo"
+              },
+              "channel_id": "1488860733096853595",
+              "components": [
+                {
+                  "components": [
+                    {
+                      "custom_id": "select_record_to_update",
+                      "id": 2,
+                      "max_values": 1,
+                      "min_values": 1,
+                      "options": [
+                        {
+                          "label": "Mar 31, 2026 — ₱48,685 (Tuition Fee (Midterms))",
+                          "value": "recDtGNEVXCCxYWpQ"
+                        }
+                      ],
+                      "placeholder": "Choose a disbursement...",
+                      "type": 3
+                    }
+                  ],
+                  "id": 1,
+                  "type": 1
+                }
+              ],
+              "content": "Ugh, fine! Which one are you paying for? Pick one already, I don't have all day.",
+              "edited_timestamp": null,
+              "embeds": [],
+              "flags": 0,
+              "id": "1490300145529655397",
+              "interaction": {
+                "id": "1490300140324524092",
+                "name": "update-payment",
+                "type": 2,
+                "user": {
+                  "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                  "avatar_decoration_data": {
+                    "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                    "expires_at": null,
+                    "sku_id": "1481384635886862397"
+                  },
+                  "clan": null,
+                  "collectibles": {
+                    "nameplate": {
+                      "asset": "nameplates/spider-man/1481388758455550114/",
+                      "expires_at": null,
+                      "label": "A glowing red and black spider resting on blue-white spider webs",
+                      "palette": "crimson",
+                      "sku_id": "1481388758455550114"
+                    }
+                  },
+                  "discriminator": "0",
+                  "display_name_styles": null,
+                  "global_name": "supremodude",
+                  "id": "550449378205106196",
+                  "primary_guild": null,
+                  "public_flags": 64,
+                  "username": "supremodude7"
+                }
+              },
+              "interaction_metadata": {
+                "authorizing_integration_owners": {
+                  "0": "1488068132198420564"
+                },
+                "command_type": 1,
+                "id": "1490300140324524092",
+                "name": "update-payment",
+                "type": 2,
+                "user": {
+                  "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                  "avatar_decoration_data": {
+                    "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                    "expires_at": null,
+                    "sku_id": "1481384635886862397"
+                  },
+                  "clan": null,
+                  "collectibles": {
+                    "nameplate": {
+                      "asset": "nameplates/spider-man/1481388758455550114/",
+                      "expires_at": null,
+                      "label": "A glowing red and black spider resting on blue-white spider webs",
+                      "palette": "crimson",
+                      "sku_id": "1481388758455550114"
+                    }
+                  },
+                  "discriminator": "0",
+                  "display_name_styles": null,
+                  "global_name": "supremodude",
+                  "id": "550449378205106196",
+                  "primary_guild": null,
+                  "public_flags": 64,
+                  "username": "supremodude7"
+                }
+              },
+              "mention_everyone": false,
+              "mention_roles": [],
+              "mentions": [],
+              "pinned": false,
+              "timestamp": "2026-04-05T10:40:43.132000+00:00",
+              "tts": false,
+              "type": 20,
+              "webhook_id": "1488862741564358756"
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ5MDMwMDQ0Mjg1OTc5ODY3OTpNc09hSVYxcWlhS25Fejl6UzE5bFlqaWVvZjI4MWdwam83a3FCbkhUdUQ3QlltUk5QeHk5UmpZeVg3bmVkOXJXZG9GbE04UUhDVmtnM0V6UG5ibWZ2a0R5SkZjQ1lkcHk1emZ4NG1udFJwVnh5eFdHa2NqRkNzcktVQVU2V2VKTQ",
+            "type": 5,
             "version": 1
           },
-          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/okarun-interactions",
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/momo-interactions",
           "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
         }
       }
     ]
@@ -804,6 +1801,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2026-04-01T11:44:25.244Z",
-  "versionId": "0effbaac-d0f5-4b19-91cf-1960acd2e83c"
+  "updatedAt": "2026-04-05T10:46:09.317Z",
+  "versionId": "ea4b1f02-4af0-4bbc-897b-d6847bec6a3a"
 }
