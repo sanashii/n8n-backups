@@ -1,0 +1,792 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-04-05T10:36:07.000Z",
+    "createdAt": "2026-04-05T10:36:02.565Z",
+    "versionId": "1b29c065-f0dc-4b29-90c3-c3e17cfac7b7",
+    "workflowId": "FnDMvPkxv4WaCZ6C",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -16,
+          -96
+        ],
+        "id": "cbfcab70-a877-4813-9e58-e8c1966ebde8",
+        "name": "When Called By Another Workflow"
+      },
+      {
+        "parameters": {
+          "base": {
+            "__rl": true,
+            "value": "appqZUlvd3FzfV5aM",
+            "mode": "list",
+            "cachedResultName": "Thea Scholarship Payments",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbloVOhB3Ys19rG2v",
+            "mode": "list",
+            "cachedResultName": "Table 1",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          224,
+          96
+        ],
+        "id": "2066342c-858e-40e0-a634-8b5802b3ea93",
+        "name": "Airtable: List All Records",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "FvCnbFaNlUhr78gp",
+            "name": "Thea Scholarship Table API"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $('When Called By Another Workflow').first().json.body;\n\n  // Extract modal field values\n  const components = body.data.components;\n  const getValue = (id) => {\n    const row = components.find(c => c.components[0].custom_id === id);\n    return row ? row.components[0].value.trim() : '';\n  };\n\n  const dateReceivedRaw = getValue('date_received');\n  const receivedVia     = getValue('received_via');\n  const amountReceived  =\n  parseFloat(getValue('amount_received').replace(/[,\\s]/g, '')) || 0;\n  const particulars     = getValue('particulars');\n\n  function toISO(str) {\n    const d = new Date(str);\n    return isNaN(d.getTime()) ? null : d.toISOString();\n  }\n\n  // HTTP Request returns one object: { records: [{id, fields}, ...] }\n  // (different from Airtable node which returns individual items)\n  const existingRecords = $input.first().json.records || [];\n\n  const LOAN_TOTAL = 300000;\n  const alreadyReceived = existingRecords.reduce((sum, r) => {\n    return sum + (r.fields?.['Amount Received'] || 0);\n  }, 0);\n  const remainingBalance = LOAN_TOTAL - alreadyReceived - amountReceived;\n\n  return [{\n    json: {\n      dateReceived:    toISO(dateReceivedRaw),\n      receivedVia,\n      amountReceived,\n      particulars,\n      remainingBalance\n    }\n  }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          464,
+          -96
+        ],
+        "id": "5931baf1-a5db-4418-8345-70e42481b6a7",
+        "name": "Code: Process Log Receipt Data"
+      },
+      {
+        "parameters": {
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "appqZUlvd3FzfV5aM",
+            "mode": "list",
+            "cachedResultName": "Thea Scholarship Payments",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbloVOhB3Ys19rG2v",
+            "mode": "list",
+            "cachedResultName": "Table 1",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date Received": "={{ $json.dateReceived }}",
+              "Received Via": "={{ $json.receivedVia }}",
+              "Amount Received": "={{ $json.amountReceived }}",
+              "Particulars": "={{ $json.particulars }}",
+              "Amount Paid": 0,
+              "Remaining Balance (From ₱300,000)": "={{ $json.remainingBalance }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Date Received",
+                "displayName": "Date Received",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Received Via",
+                "displayName": "Received Via",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Amount Received",
+                "displayName": "Amount Received",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Particulars",
+                "displayName": "Particulars",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Remaining Balance (From ₱300,000)",
+                "displayName": "Remaining Balance (From ₱300,000)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Amount Paid",
+                "displayName": "Amount Paid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Date Paid",
+                "displayName": "Date Paid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Receipt",
+                "displayName": "Receipt",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2,
+        "position": [
+          704,
+          -96
+        ],
+        "id": "e01020d6-2d41-4850-9ad6-6faefd1218bd",
+        "name": "Airtable: Create Record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "FvCnbFaNlUhr78gp",
+            "name": "Thea Scholarship Table API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://discord.com/api/v10/webhooks/{{ $('When Called By Another Workflow').first().json.body.application_id }}/{{ $('When Called By Another Workflow').first().json.body.token }}/messages/@original",
+          "sendBody": true,
+          "contentType": "raw",
+          "rawContentType": "application/json",
+          "body": "={{ (() => {\n  const d = $('Code: Process Log Receipt Data').first().json;\n  return JSON.stringify({\n    embeds: [{\n      title: \"Logged it. You're welcome, I guess.\",\n      description: \"Geez, did you really need me to do this for you?! I wrote it all down so don't you dare lose track of it. The doctor sent the money, okay? Make sure you pay it back properly!\",\n      color: 16007990,\n      fields: [\n        { name: \"Date Received\",     value: d.dateReceived || 'N/A',                                        inline: true  },\n        { name: \"Received Via\",      value: d.receivedVia,                                                  inline: true  },\n        { name: \"Amount Received\",   value: `\\u20b1${Number(d.amountReceived).toLocaleString('en-PH')}`,   inline: true  },\n        { name: \"Particulars\",       value: d.particulars,                                                  inline: false },\n        { name: \"Remaining Balance\", value: `\\u20b1${Number(d.remainingBalance).toLocaleString('en-PH')}`, inline: false }\n      ],\n      footer: { text: \"Momo Bot \\u2022 It's not like I care about your grades or anything!\" }\n    }]\n  });\n})() }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [
+          944,
+          -96
+        ],
+        "id": "8c3d2029-6e63-42ba-939a-1798514bb06c",
+        "name": "HTTP: Confirm Log Receipt"
+      },
+      {
+        "parameters": {
+          "url": "https://api.airtable.com/v0/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "airtableTokenApi",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          224,
+          -96
+        ],
+        "id": "2b470abc-cf74-4615-a8ed-58a89234f30c",
+        "name": "HTTP Request",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "FvCnbFaNlUhr78gp",
+            "name": "Thea Scholarship Table API"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When Called By Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable: List All Records": {
+        "main": [
+          []
+        ]
+      },
+      "Code: Process Log Receipt Data": {
+        "main": [
+          [
+            {
+              "node": "Airtable: Create Record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable: Create Record": {
+        "main": [
+          [
+            {
+              "node": "HTTP: Confirm Log Receipt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Code: Process Log Receipt Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version 1b29c065",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "1b29c065-f0dc-4b29-90c3-c3e17cfac7b7",
+  "connections": {
+    "When Called By Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: List All Records": {
+      "main": [
+        []
+      ]
+    },
+    "Code: Process Log Receipt Data": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Create Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Create Record": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Confirm Log Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code: Process Log Receipt Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-05T02:01:20.122Z",
+  "id": "FnDMvPkxv4WaCZ6C",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Momo - Scholarship: Log Payment Received",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        -96
+      ],
+      "id": "cbfcab70-a877-4813-9e58-e8c1966ebde8",
+      "name": "When Called By Another Workflow"
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appqZUlvd3FzfV5aM",
+          "mode": "list",
+          "cachedResultName": "Thea Scholarship Payments",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbloVOhB3Ys19rG2v",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "2066342c-858e-40e0-a634-8b5802b3ea93",
+      "name": "Airtable: List All Records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "FvCnbFaNlUhr78gp",
+          "name": "Thea Scholarship Table API"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('When Called By Another Workflow').first().json.body;\n\n  // Extract modal field values\n  const components = body.data.components;\n  const getValue = (id) => {\n    const row = components.find(c => c.components[0].custom_id === id);\n    return row ? row.components[0].value.trim() : '';\n  };\n\n  const dateReceivedRaw = getValue('date_received');\n  const receivedVia     = getValue('received_via');\n  const amountReceived  =\n  parseFloat(getValue('amount_received').replace(/[,\\s]/g, '')) || 0;\n  const particulars     = getValue('particulars');\n\n  function toISO(str) {\n    const d = new Date(str);\n    return isNaN(d.getTime()) ? null : d.toISOString();\n  }\n\n  // HTTP Request returns one object: { records: [{id, fields}, ...] }\n  // (different from Airtable node which returns individual items)\n  const existingRecords = $input.first().json.records || [];\n\n  const LOAN_TOTAL = 300000;\n  const alreadyReceived = existingRecords.reduce((sum, r) => {\n    return sum + (r.fields?.['Amount Received'] || 0);\n  }, 0);\n  const remainingBalance = LOAN_TOTAL - alreadyReceived - amountReceived;\n\n  return [{\n    json: {\n      dateReceived:    toISO(dateReceivedRaw),\n      receivedVia,\n      amountReceived,\n      particulars,\n      remainingBalance\n    }\n  }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -96
+      ],
+      "id": "5931baf1-a5db-4418-8345-70e42481b6a7",
+      "name": "Code: Process Log Receipt Data"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appqZUlvd3FzfV5aM",
+          "mode": "list",
+          "cachedResultName": "Thea Scholarship Payments",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbloVOhB3Ys19rG2v",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date Received": "={{ $json.dateReceived }}",
+            "Received Via": "={{ $json.receivedVia }}",
+            "Amount Received": "={{ $json.amountReceived }}",
+            "Particulars": "={{ $json.particulars }}",
+            "Amount Paid": 0,
+            "Remaining Balance (From ₱300,000)": "={{ $json.remainingBalance }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date Received",
+              "displayName": "Date Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Received Via",
+              "displayName": "Received Via",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount Received",
+              "displayName": "Amount Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Particulars",
+              "displayName": "Particulars",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Remaining Balance (From ₱300,000)",
+              "displayName": "Remaining Balance (From ₱300,000)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount Paid",
+              "displayName": "Amount Paid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date Paid",
+              "displayName": "Date Paid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Receipt",
+              "displayName": "Receipt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -96
+      ],
+      "id": "e01020d6-2d41-4850-9ad6-6faefd1218bd",
+      "name": "Airtable: Create Record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "FvCnbFaNlUhr78gp",
+          "name": "Thea Scholarship Table API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://discord.com/api/v10/webhooks/{{ $('When Called By Another Workflow').first().json.body.application_id }}/{{ $('When Called By Another Workflow').first().json.body.token }}/messages/@original",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ (() => {\n  const d = $('Code: Process Log Receipt Data').first().json;\n  return JSON.stringify({\n    embeds: [{\n      title: \"Logged it. You're welcome, I guess.\",\n      description: \"Geez, did you really need me to do this for you?! I wrote it all down so don't you dare lose track of it. The doctor sent the money, okay? Make sure you pay it back properly!\",\n      color: 16007990,\n      fields: [\n        { name: \"Date Received\",     value: d.dateReceived || 'N/A',                                        inline: true  },\n        { name: \"Received Via\",      value: d.receivedVia,                                                  inline: true  },\n        { name: \"Amount Received\",   value: `\\u20b1${Number(d.amountReceived).toLocaleString('en-PH')}`,   inline: true  },\n        { name: \"Particulars\",       value: d.particulars,                                                  inline: false },\n        { name: \"Remaining Balance\", value: `\\u20b1${Number(d.remainingBalance).toLocaleString('en-PH')}`, inline: false }\n      ],\n      footer: { text: \"Momo Bot \\u2022 It's not like I care about your grades or anything!\" }\n    }]\n  });\n})() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        944,
+        -96
+      ],
+      "id": "8c3d2029-6e63-42ba-939a-1798514bb06c",
+      "name": "HTTP: Confirm Log Receipt"
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "2b470abc-cf74-4615-a8ed-58a89234f30c",
+      "name": "HTTP Request",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "FvCnbFaNlUhr78gp",
+          "name": "Thea Scholarship Table API"
+        }
+      }
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {
+    "When Called By Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.srv1541552.hstgr.cloud",
+            "user-agent": "Discord-Interactions/1.0 (+https://discord.com)",
+            "content-length": "2384",
+            "content-type": "application/json",
+            "x-forwarded-for": "35.196.132.85",
+            "x-forwarded-host": "n8n.srv1541552.hstgr.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "bed0e4eeabd6",
+            "x-real-ip": "35.196.132.85",
+            "x-signature-ed25519": "baa88182c69df4246cd00a8e94a63b4bb9af9957c182fa6d6c196e8efd2734d084378bc05b45f19c17a9a7f4e8282316cab0bfdfded5d1a5d3d74b69a794e20f",
+            "x-signature-timestamp": "1775385259",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "app_permissions": "18014398509481983",
+            "application_id": "1488862741564358756",
+            "attachment_size_limit": 10485760,
+            "authorizing_integration_owners": {
+              "0": "1488068132198420564"
+            },
+            "channel": {
+              "flags": 0,
+              "guild_id": "1488068132198420564",
+              "id": "1488860733096853595",
+              "last_message_id": "1490298261829976124",
+              "last_pin_timestamp": "2026-04-01T11:22:07.807000+00:00",
+              "name": "scholarship-updates",
+              "nsfw": false,
+              "parent_id": "1488074891298209923",
+              "permissions": "18014398509481983",
+              "position": 11,
+              "rate_limit_per_user": 0,
+              "topic": null,
+              "type": 0
+            },
+            "channel_id": "1488860733096853595",
+            "context": 0,
+            "data": {
+              "components": [
+                {
+                  "components": [
+                    {
+                      "custom_id": "date_received",
+                      "id": 2,
+                      "type": 4,
+                      "value": "March 31, 2026"
+                    }
+                  ],
+                  "id": 1,
+                  "type": 1
+                },
+                {
+                  "components": [
+                    {
+                      "custom_id": "received_via",
+                      "id": 4,
+                      "type": 4,
+                      "value": "Bank Transfer: PNB"
+                    }
+                  ],
+                  "id": 3,
+                  "type": 1
+                },
+                {
+                  "components": [
+                    {
+                      "custom_id": "amount_received",
+                      "id": 6,
+                      "type": 4,
+                      "value": "48685"
+                    }
+                  ],
+                  "id": 5,
+                  "type": 1
+                },
+                {
+                  "components": [
+                    {
+                      "custom_id": "particulars",
+                      "id": 8,
+                      "type": 4,
+                      "value": "Tuition Fee (Midterms)"
+                    }
+                  ],
+                  "id": 7,
+                  "type": 1
+                }
+              ],
+              "custom_id": "log_receipt_modal"
+            },
+            "entitlement_sku_ids": [],
+            "entitlements": [],
+            "guild": {
+              "features": [],
+              "id": "1488068132198420564",
+              "locale": "en-US"
+            },
+            "guild_id": "1488068132198420564",
+            "guild_locale": "en-US",
+            "id": "1490298537508995203",
+            "locale": "en-US",
+            "member": {
+              "avatar": null,
+              "banner": null,
+              "communication_disabled_until": null,
+              "deaf": false,
+              "flags": 0,
+              "joined_at": "2026-03-30T06:51:30.063000+00:00",
+              "mute": false,
+              "nick": null,
+              "pending": false,
+              "permissions": "18014398509481983",
+              "premium_since": null,
+              "roles": [
+                "1488850980459249684"
+              ],
+              "unusual_dm_activity_until": null,
+              "user": {
+                "avatar": "bb6ed7d43d509fe7c95a591cad61f4fa",
+                "avatar_decoration_data": {
+                  "asset": "a_024b0379f56da1e61a0480bf7e1080ca",
+                  "expires_at": null,
+                  "sku_id": "1481384635886862397"
+                },
+                "clan": null,
+                "collectibles": {
+                  "nameplate": {
+                    "asset": "nameplates/spider-man/1481388758455550114/",
+                    "expires_at": null,
+                    "label": "A glowing red and black spider resting on blue-white spider webs",
+                    "palette": "crimson",
+                    "sku_id": "1481388758455550114"
+                  }
+                },
+                "discriminator": "0",
+                "display_name_styles": null,
+                "global_name": "supremodude",
+                "id": "550449378205106196",
+                "primary_guild": null,
+                "public_flags": 64,
+                "username": "supremodude7"
+              }
+            },
+            "token": "aW50ZXJhY3Rpb246MTQ5MDI5ODUzNzUwODk5NTIwMzpLQU51R0d0QVFGMjVVWk90WTVLNzAyV0hWSUg5NkowQWlLdHVRRFA2bG9kVUphcVFMYUdYdHpTZklXS285NElwVkxpZ2lBbXRlblJtRHdtRjBadklqZXBhTUdLWFpxbUxGbGNJU0ZadExKMzNSdGNyTTRBVjJNaDJHeEFPNE56Zw",
+            "type": 5,
+            "version": 1
+          },
+          "webhookUrl": "https://n8n.srv1541552.hstgr.cloud/webhook/momo-interactions",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-05T02:01:20.126Z",
+      "createdAt": "2026-04-05T02:01:20.126Z",
+      "role": "workflow:owner",
+      "workflowId": "FnDMvPkxv4WaCZ6C",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-05T10:36:02.564Z",
+  "versionId": "1b29c065-f0dc-4b29-90c3-c3e17cfac7b7"
+}
