@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-04-04T09:43:05.000Z",
-    "createdAt": "2026-04-04T09:43:03.001Z",
-    "versionId": "39f953c4-0619-4084-adab-8bb92de818a9",
+    "updatedAt": "2026-04-07T07:52:29.000Z",
+    "createdAt": "2026-04-07T07:52:21.026Z",
+    "versionId": "5473c01d-e17b-4049-9550-1e82182423f9",
     "workflowId": "nOHgKq7QIohOO5fo",
     "nodes": [
       {
@@ -74,7 +74,7 @@
             "cachedResultName": "macbook-pro-notification",
             "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1489919910678364190"
           },
-          "content": "...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
+          "content": "=...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
           "options": {}
         },
         "id": "a72d625a-9729-465a-b586-05c560edceed",
@@ -170,11 +170,11 @@
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version 39f953c4",
+    "name": "Version 5473c01d",
     "description": "",
     "autosaved": true
   },
-  "activeVersionId": "39f953c4-0619-4084-adab-8bb92de818a9",
+  "activeVersionId": "5473c01d-e17b-4049-9550-1e82182423f9",
   "connections": {
     "Mentions MacBook or M5?": {
       "main": [
@@ -286,7 +286,7 @@
           "cachedResultName": "macbook-pro-notification",
           "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1489919910678364190"
         },
-        "content": "...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
+        "content": "=...Psst. 👁️ Okarun here.\n\n**Apple Philippines just posted something on Facebook** — and my sensors flagged it.\n\n📌 **{{ $json.title }}**\n🔗 {{ $json.link }}\n\nCould be nothing. Could be EVERYTHING. ...Go check it. I'll keep watching from here.",
         "options": {}
       },
       "id": "a72d625a-9729-465a-b586-05c560edceed",
@@ -347,7 +347,26 @@
     }
   ],
   "origin": "n8n",
-  "pinData": {},
+  "pinData": {
+    "RSS Feed Trigger - Power Mac Center": [
+      {
+        "json": {
+          "creator": "Power Mac Center",
+          "title": "Take off with the all-new MacBook Air. Pre-order yours today for as low as P3,416.25/mo. for 24 months at select Power M...",
+          "link": "https://www.facebook.com/powermaccenter/posts/pfbid0x8yu7WvHjBSffNeiLv4ww4z7HxzjetmvgRsu36jYjnykQPj8UoMhnr3P9NRYTUQKl",
+          "pubDate": "Tue, 07 Apr 2026 07:43:36 GMT",
+          "dc:creator": "Power Mac Center",
+          "content": "<div><img src=\"https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-6/668339503_1344368577738124_8252312897745588086_n.jpg?stp=dst-jpg_p526x296_tt6&_nc_cat=100&ccb=1-7&_nc_sid=e289f2&_nc_ohc=Htf_RGKfG64Q7kNvwFeACq4&_nc_oc=Ado3JvLfwOkGXY1tMCCKF30YuH_jXI3XMwhv7r7aE1H5_FCghDL4Rh80HSoioHHiB84&_nc_zt=23&_nc_ht=scontent-lga3-2.xx&_nc_gid=CglXNHjx9z0G4xJgpDrmxQ&_nc_ss=7a389&oh=00_Af3dAA81WUoypJr84Uvn1XoiEo16o0mZka_jzXBfF6p13Q&oe=69DA77CD\" style=\"width: 100%;\" /><div>Take off with the all-new MacBook Air.<br> Pre-order yours today for as low as P3,416.25/mo. for 24 months at select Power Mac Center stores or via https://bit.ly/4seOroQ from April 7 to 12, 2026.<br> ● Greenbelt 3<br> ● SM City North EDSA (Annex)<br> ● TriNoma<br> ● Robinsons Magnolia<br> ● SM Megamall<br> ● Power Plant Mall<br> ● Bonifacio High Street<br> ● SM Mall of Asia<br> ● Festival Mall<br> ● SM City Iloilo<br> ● SM Lanang Premier<br> ● SM Aura Premier<br> ● Abreeza Mall<br> ● SM City Urdaneta Central<br> ● SM City Pampanga<br> ● SM City Clark<br> ● SM City Fairview<br> ● SM City Marikina<br> ● SM City Dasmariñas<br> ● SM City Lipa<br> ● SM City Batangas<br> ● SM City Legazpi<br> ● Robinsons Galleria Cebu<br> ● Robinsons Place Tacloban<br> ● Ayala Malls Capitol Central<br> ● SM Cagayan De Oro Downtown Premier<br> ● SM City Zamboanga</div></div>",
+          "contentSnippet": "Take off with the all-new MacBook Air.\n Pre-order yours today for as low as P3,416.25/mo. for 24 months at select Power Mac Center stores or via https://bit.ly/4seOroQ from April 7 to 12, 2026.\n ● Greenbelt 3\n ● SM City North EDSA (Annex)\n ● TriNoma\n ● Robinsons Magnolia\n ● SM Megamall\n ● Power Plant Mall\n ● Bonifacio High Street\n ● SM Mall of Asia\n ● Festival Mall\n ● SM City Iloilo\n ● SM Lanang Premier\n ● SM Aura Premier\n ● Abreeza Mall\n ● SM City Urdaneta Central\n ● SM City Pampanga\n ● SM City Clark\n ● SM City Fairview\n ● SM City Marikina\n ● SM City Dasmariñas\n ● SM City Lipa\n ● SM City Batangas\n ● SM City Legazpi\n ● Robinsons Galleria Cebu\n ● Robinsons Place Tacloban\n ● Ayala Malls Capitol Central\n ● SM Cagayan De Oro Downtown Premier\n ● SM City Zamboanga",
+          "guid": "33f36b0266becc33925b980dece49d41",
+          "isoDate": "2026-04-07T07:43:36.000Z"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "repo": {
     "owner": "sanashii",
     "name": "n8n-backups"
@@ -370,14 +389,14 @@
       "lastItemDate": "2026-03-30T11:00:06.000Z"
     },
     "node:RSS Feed Trigger - iStore": {
-      "lastItemDate": "2026-04-06T11:00:05.000Z"
+      "lastItemDate": "2026-04-07T11:00:33.000Z"
     },
     "node:RSS Feed Trigger - Power Mac Center": {
-      "lastItemDate": "2026-04-06T07:56:27.000Z"
+      "lastItemDate": "2026-04-07T09:00:57.000Z"
     }
   },
   "tags": [],
   "triggerCount": 2,
-  "updatedAt": "2026-04-04T13:11:15.762Z",
-  "versionId": "39f953c4-0619-4084-adab-8bb92de818a9"
+  "updatedAt": "2026-04-07T07:52:21.025Z",
+  "versionId": "5473c01d-e17b-4049-9550-1e82182423f9"
 }
