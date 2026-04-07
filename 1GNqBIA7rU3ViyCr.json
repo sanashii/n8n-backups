@@ -1,9 +1,9 @@
 {
   "active": true,
   "activeVersion": {
-    "updatedAt": "2026-04-05T10:58:49.000Z",
-    "createdAt": "2026-04-05T10:55:48.023Z",
-    "versionId": "43457465-17db-4725-8d3e-bab416ac32cb",
+    "updatedAt": "2026-04-07T14:39:01.000Z",
+    "createdAt": "2026-04-07T14:38:53.169Z",
+    "versionId": "e124dc36-cf72-4e9a-9d61-67e73b436f2a",
     "workflowId": "1GNqBIA7rU3ViyCr",
     "nodes": [
       {
@@ -204,7 +204,7 @@
         "typeVersion": 2,
         "position": [
           720,
-          0
+          192
         ],
         "id": "e7d29014-a412-43bf-bc4a-747384bee89d",
         "name": "Airtable: Update Receipt Field",
@@ -213,7 +213,8 @@
             "id": "FvCnbFaNlUhr78gp",
             "name": "Thea Scholarship Table API"
           }
-        }
+        },
+        "disabled": true
       },
       {
         "parameters": {
@@ -255,6 +256,152 @@
             "name": "Thea Scholarship Table API"
           }
         }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "appqZUlvd3FzfV5aM",
+            "mode": "list",
+            "cachedResultName": "Thea Scholarship Payments",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbloVOhB3Ys19rG2v",
+            "mode": "list",
+            "cachedResultName": "Table 1",
+            "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "id": "={{ $('HTTP Request').item.json.records[0].id }}",
+              "Receipt": "={{ [{url: $json.fileUrl, filename: $json.filename}] }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Date Received",
+                "displayName": "Date Received",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Received Via",
+                "displayName": "Received Via",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Amount Received",
+                "displayName": "Amount Received",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Particulars",
+                "displayName": "Particulars",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Remaining Balance (From ₱300,000)",
+                "displayName": "Remaining Balance (From ₱300,000)",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Amount Paid",
+                "displayName": "Amount Paid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Date Paid",
+                "displayName": "Date Paid",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Receipt",
+                "displayName": "Receipt",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "array",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.2,
+        "position": [
+          720,
+          0
+        ],
+        "id": "de6b8aa3-a43d-466f-9cec-da4d4691a37a",
+        "name": "Update record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "FvCnbFaNlUhr78gp",
+            "name": "Thea Scholarship Table API"
+          }
+        }
       }
     ],
     "connections": {
@@ -278,7 +425,7 @@
         "main": [
           [
             {
-              "node": "Airtable: Update Receipt Field",
+              "node": "Update record",
               "type": "main",
               "index": 0
             }
@@ -287,13 +434,7 @@
       },
       "Airtable: Update Receipt Field": {
         "main": [
-          [
-            {
-              "node": "HTTP: Confirm Upload Receipt",
-              "type": "main",
-              "index": 0
-            }
-          ]
+          []
         ]
       },
       "HTTP Request": {
@@ -306,14 +447,25 @@
             }
           ]
         ]
+      },
+      "Update record": {
+        "main": [
+          [
+            {
+              "node": "HTTP: Confirm Upload Receipt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "Andrea Baulita",
-    "name": "Version 43457465",
+    "name": "Version e124dc36",
     "description": "",
     "autosaved": true
   },
-  "activeVersionId": "43457465-17db-4725-8d3e-bab416ac32cb",
+  "activeVersionId": "e124dc36-cf72-4e9a-9d61-67e73b436f2a",
   "connections": {
     "When Called By Another Workflow": {
       "main": [
@@ -335,7 +487,7 @@
       "main": [
         [
           {
-            "node": "Airtable: Update Receipt Field",
+            "node": "Update record",
             "type": "main",
             "index": 0
           }
@@ -344,13 +496,7 @@
     },
     "Airtable: Update Receipt Field": {
       "main": [
-        [
-          {
-            "node": "HTTP: Confirm Upload Receipt",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "HTTP Request": {
@@ -358,6 +504,17 @@
         [
           {
             "node": "Code: Process Upload Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Confirm Upload Receipt",
             "type": "main",
             "index": 0
           }
@@ -571,7 +728,7 @@
       "typeVersion": 2,
       "position": [
         720,
-        0
+        192
       ],
       "id": "e7d29014-a412-43bf-bc4a-747384bee89d",
       "name": "Airtable: Update Receipt Field",
@@ -580,7 +737,8 @@
           "id": "FvCnbFaNlUhr78gp",
           "name": "Thea Scholarship Table API"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -616,6 +774,152 @@
       ],
       "id": "064f6a68-de8e-4bcb-9a8f-7b89c0bd67f1",
       "name": "HTTP Request",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "FvCnbFaNlUhr78gp",
+          "name": "Thea Scholarship Table API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appqZUlvd3FzfV5aM",
+          "mode": "list",
+          "cachedResultName": "Thea Scholarship Payments",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbloVOhB3Ys19rG2v",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appqZUlvd3FzfV5aM/tbloVOhB3Ys19rG2v"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('HTTP Request').item.json.records[0].id }}",
+            "Receipt": "={{ [{url: $json.fileUrl, filename: $json.filename}] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Date Received",
+              "displayName": "Date Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Received Via",
+              "displayName": "Received Via",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Amount Received",
+              "displayName": "Amount Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Particulars",
+              "displayName": "Particulars",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Remaining Balance (From ₱300,000)",
+              "displayName": "Remaining Balance (From ₱300,000)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Amount Paid",
+              "displayName": "Amount Paid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Date Paid",
+              "displayName": "Date Paid",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Receipt",
+              "displayName": "Receipt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "de6b8aa3-a43d-466f-9cec-da4d4691a37a",
+      "name": "Update record",
       "credentials": {
         "airtableTokenApi": {
           "id": "FvCnbFaNlUhr78gp",
@@ -785,6 +1089,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-04-05T10:55:48.022Z",
-  "versionId": "43457465-17db-4725-8d3e-bab416ac32cb"
+  "updatedAt": "2026-04-07T14:38:53.169Z",
+  "versionId": "e124dc36-cf72-4e9a-9d61-67e73b436f2a"
 }
