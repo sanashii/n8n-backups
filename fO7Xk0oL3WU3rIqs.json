@@ -1,0 +1,793 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-04-08T07:00:12.000Z",
+    "createdAt": "2026-04-08T07:00:02.311Z",
+    "versionId": "59029c11-a62b-4747-99b7-70f00bf8c2ef",
+    "workflowId": "fO7Xk0oL3WU3rIqs",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 8 * * *"
+              }
+            ]
+          }
+        },
+        "id": "149de7ae-9f20-4f27-9242-6ad7f248aa71",
+        "name": "Daily 8AM Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -256,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://hnrss.org/frontpage?q=AI&points=30",
+          "options": {}
+        },
+        "id": "889a4552-1422-4631-b332-84e552da8f7e",
+        "name": "HackerNews AI",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.artificialintelligence-news.com/feed/",
+          "options": {}
+        },
+        "id": "d9ef15f7-6761-4d73-b456-e3fd81d6d9f7",
+        "name": "AI News",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          64
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+          "options": {}
+        },
+        "id": "e81c8f30-ffbd-4dcb-90c7-8be165ad80f7",
+        "name": "TechCrunch AI",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://venturebeat.com/category/ai/feed/",
+          "options": {}
+        },
+        "id": "b3d9c949-b9b2-45e0-a708-82423477e619",
+        "name": "VentureBeat AI",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.marketingaiinstitute.com/blog/rss.xml",
+          "options": {}
+        },
+        "id": "6928b187-809e-4fbc-9dcb-cc707a84bd16",
+        "name": "Marketing AI Institute",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          480
+        ]
+      },
+      {
+        "parameters": {
+          "numberInputs": 5
+        },
+        "id": "f37b5ef8-7b92-45f3-9629-22c8fb01a570",
+        "name": "Merge Feeds",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          192,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const seen = new Set();\nconst items = [];\n\nfor (const item of $input.all()) {\n  const url = (item.json.link || item.json.url || item.json.id || '').trim();\n  const title = (item.json.title || '').trim();\n\n  if (!url || !title) continue;\n  if (seen.has(url) || seen.has(title)) continue;\n  if (items.length >= 25) break;\n\n  seen.add(url);\n  seen.add(title);\n\n  const rawDesc = item.json.contentSnippet ||\n                  item.json.description ||\n                  item.json.content ||\n                  item.json.summary || '';\n\n  const description = rawDesc\n    .replace(/<[^>]*>/g, '')\n    .replace(/\\s+/g, ' ')\n    .substring(0, 250)\n    .trim();\n\n  items.push({ json: { title, url, description } });\n}\n\nreturn items;"
+        },
+        "id": "393e92f1-961a-46a5-a411-98a4603ccba7",
+        "name": "Deduplicate & Normalize",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          416,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst today = new Date().toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nconst newsList = items.map((item, i) =>\n  `${i + 1}. ${item.json.title}\\n   ${item.json.url}\\n   ${item.json.description}`\n).join('\\n\\n');\n\nconst prompt = `You are Okarun from Dandadan and you are reporting on AI news with Fireship's \"Code Report\" energy — fast, punchy, slightly sarcastic, zero fluff. Date: ${today}.\\n\\nHere are today's AI headlines:\\n\\n${newsList}\\n\\n---\\n\\nWrite exactly TWO sections:\\n\\n## SECTION 1: THE OKARUN REPORT\\nPick the 5-7 most interesting stories. Fireship Code Report style: fast, punchy, 2-3 sentences per story. Open with a hook like \"It's [weekday], and AI is at it again.\" End with a one-liner closer.\\n\\nFormat each story as:\\n**[Story Headline]** <url>\\nYour punchy take here.\\n\\n## SECTION 2: EARTHCHIMP INTEL\\nEarthChimp is a vegan protein powder e-commerce brand. Pick 3-4 stories relevant to: AI in health/wellness/supplement e-commerce, AI-powered performance marketing & Meta/Google ads, AI content generation for fitness/nutrition brands, AI personalization for DTC brands, AI SEO for health products, or AI tools for influencer/UGC marketing. For each, explain in 1-2 sentences WHY it matters specifically for a vegan protein powder brand trying to grow online.\\n\\nFormat each as:\\n**[Headline]** <url>\\nWhy EarthChimp should care: [your take]\\n\\nEnd the section with:\\n💡 **This Week's Action Item:** [One concrete thing EarthChimp could test or try based on today's news — be specific to vegan supplements/DTC]`;\n\nreturn [{ json: { prompt, itemCount: items.length } }];"
+        },
+        "id": "220af48b-c7b3-4b57-8a2d-e578316b3371",
+        "name": "Build Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          640,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = $input.first();\nconst content = $input.first().json.text;\n\n\nconst dividerRegex = /##\\s*SECTION 2[:\\s]*EARTHCHIMP INTEL/i;\nconst parts = content.split(dividerRegex);\n\nconst section1Raw = parts[0]\n  .replace(/##\\s*SECTION 1[:\\s]*THE OKARUN REPORT\\s*/i, '')\n  .trim();\n\nconst section2Raw = parts[1] ? parts[1].trim() : '';\n\n// Discord message limit is 2000 chars\nconst truncate = (str, limit = 1990) =>\n  str.length > limit ? str.substring(0, limit - 3) + '...' : str;\n\nconst section1 = truncate(`📡 **THE OKARUN REPORT**\\n\\n${section1Raw}`);\nconst section2 = section2Raw\n  ? truncate(`🛒 **EARTHCHIMP INTEL**\\n\\n${section2Raw}`)\n  : '🛒 **EARTHCHIMP INTEL** — No relevant e-commerce AI stories today.';\n\nreturn [\n  { json: { message: section1 } },\n  { json: { message: section2 } }\n];"
+        },
+        "id": "e06588c9-e2c7-4264-91a1-42d3d329419f",
+        "name": "Parse Sections",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "message",
+          "guildId": {
+            "__rl": true,
+            "value": "1488068132198420564",
+            "mode": "list",
+            "cachedResultName": "bau & thea",
+            "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+          },
+          "channelId": {
+            "__rl": true,
+            "value": "1491329326392676422",
+            "mode": "list",
+            "cachedResultName": "daily-ai-digest",
+            "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1491329326392676422"
+          },
+          "content": "={{ $json.message }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.discord",
+        "typeVersion": 2,
+        "position": [
+          1424,
+          208
+        ],
+        "id": "7d0854ad-bd45-4d62-b82a-488e7a84e1f3",
+        "name": "Send a message",
+        "webhookId": "fad3ca68-af51-451f-9c03-63f9ca65a070",
+        "credentials": {
+          "discordBotApi": {
+            "id": "QXXgqWlMdAoLfJM5",
+            "name": "Okarun Discord Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.prompt }}",
+          "messages": {
+            "messageValues": []
+          },
+          "batching": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.9,
+        "position": [
+          848,
+          208
+        ],
+        "id": "e5515f7d-5ef1-43f0-8092-32ee0276a17f",
+        "name": "Basic LLM Chain"
+      },
+      {
+        "parameters": {
+          "model": "google/gemini-2.0-flash-001",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          784,
+          416
+        ],
+        "id": "d315a5b5-bee8-4c25-9304-8108e2b297ea",
+        "name": "OpenRouter Chat Model",
+        "credentials": {
+          "openRouterApi": {
+            "id": "g0Uby2vRiyVUwoAp",
+            "name": "OpenRouter API Key"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Daily 8AM Trigger": {
+        "main": [
+          [
+            {
+              "node": "HackerNews AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "TechCrunch AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "VentureBeat AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Marketing AI Institute",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "AI News",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HackerNews AI": {
+        "main": [
+          [
+            {
+              "node": "Merge Feeds",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI News": {
+        "main": [
+          [
+            {
+              "node": "Merge Feeds",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Feeds": {
+        "main": [
+          [
+            {
+              "node": "Deduplicate & Normalize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Deduplicate & Normalize": {
+        "main": [
+          [
+            {
+              "node": "Build Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Prompt": {
+        "main": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Sections": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "TechCrunch AI": {
+        "main": [
+          [
+            {
+              "node": "Merge Feeds",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "VentureBeat AI": {
+        "main": [
+          [
+            {
+              "node": "Merge Feeds",
+              "type": "main",
+              "index": 3
+            }
+          ]
+        ]
+      },
+      "Marketing AI Institute": {
+        "main": [
+          [
+            {
+              "node": "Merge Feeds",
+              "type": "main",
+              "index": 4
+            }
+          ]
+        ]
+      },
+      "Basic LLM Chain": {
+        "main": [
+          [
+            {
+              "node": "Parse Sections",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Basic LLM Chain",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Andrea Baulita",
+    "name": "Version 59029c11",
+    "description": "",
+    "autosaved": true
+  },
+  "activeVersionId": "59029c11-a62b-4747-99b7-70f00bf8c2ef",
+  "connections": {
+    "Daily 8AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "HackerNews AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TechCrunch AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "VentureBeat AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Marketing AI Institute",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HackerNews AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI News": {
+      "main": [
+        [
+          {
+            "node": "Merge Feeds",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Feeds": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate & Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate & Normalize": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sections": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TechCrunch AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Feeds",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "VentureBeat AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Feeds",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Marketing AI Institute": {
+      "main": [
+        [
+          {
+            "node": "Merge Feeds",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Parse Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-08T06:48:55.595Z",
+  "id": "fO7Xk0oL3WU3rIqs",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Okarun — Daily AI Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "149de7ae-9f20-4f27-9242-6ad7f248aa71",
+      "name": "Daily 8AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hnrss.org/frontpage?q=AI&points=30",
+        "options": {}
+      },
+      "id": "889a4552-1422-4631-b332-84e552da8f7e",
+      "name": "HackerNews AI",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.artificialintelligence-news.com/feed/",
+        "options": {}
+      },
+      "id": "d9ef15f7-6761-4d73-b456-e3fd81d6d9f7",
+      "name": "AI News",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "options": {}
+      },
+      "id": "e81c8f30-ffbd-4dcb-90c7-8be165ad80f7",
+      "name": "TechCrunch AI",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://venturebeat.com/category/ai/feed/",
+        "options": {}
+      },
+      "id": "b3d9c949-b9b2-45e0-a708-82423477e619",
+      "name": "VentureBeat AI",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.marketingaiinstitute.com/blog/rss.xml",
+        "options": {}
+      },
+      "id": "6928b187-809e-4fbc-9dcb-cc707a84bd16",
+      "name": "Marketing AI Institute",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 5
+      },
+      "id": "f37b5ef8-7b92-45f3-9629-22c8fb01a570",
+      "name": "Merge Feeds",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        192,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\nconst items = [];\n\nfor (const item of $input.all()) {\n  const url = (item.json.link || item.json.url || item.json.id || '').trim();\n  const title = (item.json.title || '').trim();\n\n  if (!url || !title) continue;\n  if (seen.has(url) || seen.has(title)) continue;\n  if (items.length >= 25) break;\n\n  seen.add(url);\n  seen.add(title);\n\n  const rawDesc = item.json.contentSnippet ||\n                  item.json.description ||\n                  item.json.content ||\n                  item.json.summary || '';\n\n  const description = rawDesc\n    .replace(/<[^>]*>/g, '')\n    .replace(/\\s+/g, ' ')\n    .substring(0, 250)\n    .trim();\n\n  items.push({ json: { title, url, description } });\n}\n\nreturn items;"
+      },
+      "id": "393e92f1-961a-46a5-a411-98a4603ccba7",
+      "name": "Deduplicate & Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst today = new Date().toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nconst newsList = items.map((item, i) =>\n  `${i + 1}. ${item.json.title}\\n   ${item.json.url}\\n   ${item.json.description}`\n).join('\\n\\n');\n\nconst prompt = `You are Okarun from Dandadan and you are reporting on AI news with Fireship's \"Code Report\" energy — fast, punchy, slightly sarcastic, zero fluff. Date: ${today}.\\n\\nHere are today's AI headlines:\\n\\n${newsList}\\n\\n---\\n\\nWrite exactly TWO sections:\\n\\n## SECTION 1: THE OKARUN REPORT\\nPick the 5-7 most interesting stories. Fireship Code Report style: fast, punchy, 2-3 sentences per story. Open with a hook like \"It's [weekday], and AI is at it again.\" End with a one-liner closer.\\n\\nFormat each story as:\\n**[Story Headline]** <url>\\nYour punchy take here.\\n\\n## SECTION 2: EARTHCHIMP INTEL\\nEarthChimp is a vegan protein powder e-commerce brand. Pick 3-4 stories relevant to: AI in health/wellness/supplement e-commerce, AI-powered performance marketing & Meta/Google ads, AI content generation for fitness/nutrition brands, AI personalization for DTC brands, AI SEO for health products, or AI tools for influencer/UGC marketing. For each, explain in 1-2 sentences WHY it matters specifically for a vegan protein powder brand trying to grow online.\\n\\nFormat each as:\\n**[Headline]** <url>\\nWhy EarthChimp should care: [your take]\\n\\nEnd the section with:\\n💡 **This Week's Action Item:** [One concrete thing EarthChimp could test or try based on today's news — be specific to vegan supplements/DTC]`;\n\nreturn [{ json: { prompt, itemCount: items.length } }];"
+      },
+      "id": "220af48b-c7b3-4b57-8a2d-e578316b3371",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first();\nconst content = $input.first().json.text;\n\n\nconst dividerRegex = /##\\s*SECTION 2[:\\s]*EARTHCHIMP INTEL/i;\nconst parts = content.split(dividerRegex);\n\nconst section1Raw = parts[0]\n  .replace(/##\\s*SECTION 1[:\\s]*THE OKARUN REPORT\\s*/i, '')\n  .trim();\n\nconst section2Raw = parts[1] ? parts[1].trim() : '';\n\n// Discord message limit is 2000 chars\nconst truncate = (str, limit = 1990) =>\n  str.length > limit ? str.substring(0, limit - 3) + '...' : str;\n\nconst section1 = truncate(`📡 **THE OKARUN REPORT**\\n\\n${section1Raw}`);\nconst section2 = section2Raw\n  ? truncate(`🛒 **EARTHCHIMP INTEL**\\n\\n${section2Raw}`)\n  : '🛒 **EARTHCHIMP INTEL** — No relevant e-commerce AI stories today.';\n\nreturn [\n  { json: { message: section1 } },\n  { json: { message: section2 } }\n];"
+      },
+      "id": "e06588c9-e2c7-4264-91a1-42d3d329419f",
+      "name": "Parse Sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1488068132198420564",
+          "mode": "list",
+          "cachedResultName": "bau & thea",
+          "cachedResultUrl": "https://discord.com/channels/1488068132198420564"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1491329326392676422",
+          "mode": "list",
+          "cachedResultName": "daily-ai-digest",
+          "cachedResultUrl": "https://discord.com/channels/1488068132198420564/1491329326392676422"
+        },
+        "content": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        208
+      ],
+      "id": "7d0854ad-bd45-4d62-b82a-488e7a84e1f3",
+      "name": "Send a message",
+      "webhookId": "fad3ca68-af51-451f-9c03-63f9ca65a070",
+      "credentials": {
+        "discordBotApi": {
+          "id": "QXXgqWlMdAoLfJM5",
+          "name": "Okarun Discord Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        848,
+        208
+      ],
+      "id": "e5515f7d-5ef1-43f0-8092-32ee0276a17f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        784,
+        416
+      ],
+      "id": "d315a5b5-bee8-4c25-9304-8108e2b297ea",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "g0Uby2vRiyVUwoAp",
+          "name": "OpenRouter API Key"
+        }
+      }
+    }
+  ],
+  "origin": "n8n",
+  "pinData": {},
+  "repo": {
+    "owner": "sanashii",
+    "name": "n8n-backups"
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-04-08T06:48:55.602Z",
+      "createdAt": "2026-04-08T06:48:55.602Z",
+      "role": "workflow:owner",
+      "workflowId": "fO7Xk0oL3WU3rIqs",
+      "projectId": "9C1xKZgwyby4oLqC"
+    }
+  ],
+  "staticData": {
+    "node:Daily 8AM Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-08T07:00:02.310Z",
+  "versionId": "59029c11-a62b-4747-99b7-70f00bf8c2ef"
+}
